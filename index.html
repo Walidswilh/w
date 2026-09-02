@@ -175,7 +175,7 @@
   .lock-screen input{
     width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
     padding:12px 14px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:18px;
-    text-align:center;letter-spacing:6px;margin-bottom:12px;
+    text-align:center;letter-spacing:3px;margin-bottom:12px;
   }
   .lock-screen input:focus{outline:none;border-color:var(--amber);}
   .lock-screen .btn{width:100%;}
@@ -214,7 +214,7 @@
       <div class="icon">🔒</div>
       <h2>صفحة الميدان محمية</h2>
       <p>أدخل الرمز السري الخاص بالميدان للمتابعة</p>
-      <input type="password" inputmode="numeric" id="fieldPass" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter') tryUnlockField()">
+      <input type="password" id="fieldPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockField()">
       <button class="btn btn-primary" onclick="tryUnlockField()">دخول</button>
       <div class="lock-err" id="fieldLockErr"></div>
     </div>
@@ -309,7 +309,7 @@
       <div class="icon">🔒</div>
       <h2>صفحة الإدارة محمية</h2>
       <p>أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
-      <input type="password" inputmode="numeric" id="adminPass" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter') tryUnlockAdmin()">
+      <input type="password" id="adminPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockAdmin()">
       <button class="btn btn-primary" onclick="tryUnlockAdmin()">دخول</button>
       <div class="lock-err" id="adminLockErr"></div>
     </div>
@@ -364,8 +364,8 @@
 
 <script>
 // ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
-const FIELD_PASSCODE = 'w11';
-const ADMIN_PASSCODE = 'w99';
+const FIELD_PASSCODE = '1111';
+const ADMIN_PASSCODE = '9999';
 // --------------------------------------------
 
 let currentImage = null; // {base64, mediaType}
