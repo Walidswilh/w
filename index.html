@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل فواتير الوقود</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#131a1a;
+    --night:#0e2226;
+    --panel:#16302f;
+    --panel-2:#1c3b39;
+    --amber:#e8a13a;
+    --amber-dim:#b97f2b;
+    --diesel:#4a9c7c;
+    --diesel-dim:#356e58;
+    --paper:#f4efe4;
+    --paper-dim:#cfc6b3;
+    --line: rgba(244,239,228,0.14);
+    --danger:#d9704f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--night);
+    color: var(--paper);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 4px 22px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:22px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{
+    width:40px;height:40px;border-radius:10px;
+    background:linear-gradient(160deg,var(--amber),var(--amber-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cairo',sans-serif;font-weight:800;color:var(--night);font-size:18px;
+    flex-shrink:0;
+  }
+  .brand h1{
+    font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;margin:0;letter-spacing:0;
+  }
+  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--paper-dim);}
+
+  nav.tabs{display:flex;gap:8px;background:var(--panel);padding:5px;border-radius:12px;}
+  nav.tabs button{
+    border:none;background:transparent;color:var(--paper-dim);
+    font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;
+    padding:9px 16px;border-radius:9px;cursor:pointer;transition:.18s ease;
+  }
+  nav.tabs button.active{background:var(--amber);color:var(--night);}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:18px;
+  }
+  .card h2{font-family:'Cairo',sans-serif;font-size:17px;margin:0 0 4px;font-weight:700;}
+  .card .sub{color:var(--paper-dim);font-size:13px;margin:0 0 18px;}
+
+  /* --- Field capture --- */
+  .capture-zone{
+    border:1.5px dashed var(--paper-dim);
+    border-radius:14px;
+    padding:26px;
+    text-align:center;
+    cursor:pointer;
+    transition:.18s ease;
+    background:rgba(244,239,228,0.02);
+  }
+  .capture-zone:hover{border-color:var(--amber);background:rgba(232,161,58,0.06);}
+  .capture-zone .icon{font-size:34px;margin-bottom:8px;}
+  .capture-zone .label{font-weight:700;font-family:'Cairo',sans-serif;}
+  .capture-zone .hint{font-size:12.5px;color:var(--paper-dim);margin-top:4px;}
+  input[type=file]{display:none;}
+
+  .preview-row{display:flex;gap:14px;align-items:flex-start;margin-top:16px;}
+  .preview-row img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
+  .preview-actions{display:flex;flex-direction:column;gap:8px;flex:1;}
+
+  .btn{
+    font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;
+    padding:11px 18px;border-radius:10px;border:none;cursor:pointer;
+    transition:.15s ease; display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .btn-primary{background:var(--amber);color:var(--night);}
+  .btn-primary:hover{background:#f0ac48;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--paper);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--paper-dim);}
+  .btn-diesel{background:var(--diesel);color:#08211a;}
+  .btn-diesel:hover{background:#5cb28e;}
+  .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px;}
+
+  .status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--paper-dim);margin-top:10px;min-height:18px;}
+  .spinner{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--amber);animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:12.5px;color:var(--paper-dim);font-weight:500;}
+  .field input, .field select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
+    padding:10px 12px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:14.5px;
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--amber);}
+  .field.readout input{color:var(--paper-dim);}
+
+  .fuel-toggle{display:flex;gap:8px;}
+  .fuel-toggle button{
+    flex:1;padding:10px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);
+    color:var(--paper-dim);font-family:'Tajawal',sans-serif;font-weight:700;cursor:pointer;font-size:14px;
+  }
+  .fuel-toggle button.sel-benzin.active{background:var(--amber);color:var(--night);border-color:var(--amber);}
+  .fuel-toggle button.sel-diesel.active{background:var(--diesel);color:#08211a;border-color:var(--diesel);}
+
+  .form-actions{display:flex;gap:10px;margin-top:20px;}
+  .msg{padding:10px 14px;border-radius:9px;font-size:13.5px;margin-top:14px;}
+  .msg.ok{background:rgba(74,156,124,0.16);color:#8fdcb8;border:1px solid rgba(74,156,124,0.35);}
+  .msg.err{background:rgba(217,112,79,0.14);color:#f0a889;border:1px solid rgba(217,112,79,0.35);}
+
+  /* --- Admin --- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
+  .toolbar select, .toolbar input{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
+    padding:9px 12px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13.5px;
+  }
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  .stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .stat .n{font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;}
+  .stat .l{font-size:11.5px;color:var(--paper-dim);margin-top:2px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:right;padding:10px 12px;color:var(--paper-dim);font-weight:600;font-size:12px;
+    border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  tbody td{padding:11px 12px;border-bottom:1px solid rgba(244,239,228,0.06);white-space:nowrap;}
+  tbody tr:hover{background:rgba(244,239,228,0.03);}
+  .pill{padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
+  .pill.benzin{background:rgba(232,161,58,0.18);color:var(--amber);}
+  .pill.diesel{background:rgba(74,156,124,0.18);color:var(--diesel);}
+  tfoot td{padding:12px;font-weight:700;border-top:1.5px solid var(--paper-dim);font-family:'Cairo',sans-serif;font-size:13px;}
+  .row-del{background:none;border:none;color:var(--paper-dim);cursor:pointer;font-size:15px;}
+  .row-del:hover{color:var(--danger);}
+  .empty{text-align:center;padding:40px 10px;color:var(--paper-dim);}
+  .table-scroll{overflow-x:auto;}
+
+  .lock-screen{
+    max-width:340px;margin:60px auto;text-align:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:34px 28px;
+  }
+  .lock-screen .icon{
+    width:50px;height:50px;border-radius:50%;background:var(--panel-2);
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    margin:0 auto 16px;
+  }
+  .lock-screen h2{font-family:'Cairo',sans-serif;font-size:17px;margin:0 0 6px;}
+  .lock-screen p{color:var(--paper-dim);font-size:13px;margin:0 0 20px;}
+  .lock-screen input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
+    padding:12px 14px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:18px;
+    text-align:center;letter-spacing:6px;margin-bottom:12px;
+  }
+  .lock-screen input:focus{outline:none;border-color:var(--amber);}
+  .lock-screen .btn{width:100%;}
+  .lock-screen .lock-err{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px;}
+
+  @media(max-width:640px){
+    .form-grid{grid-template-columns:1fr;}
+    .stats-row{grid-template-columns:1fr 1fr;}
+    header.top{flex-direction:column;align-items:flex-start;gap:14px;}
+    nav.tabs{width:100%;}
+    nav.tabs button{flex:1;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark">و</div>
+      <div>
+        <h1>سجل فواتير الوقود</h1>
+        <p>التقاط الفاتورة ميدانياً وتسجيلها تلقائياً بالذكاء الاصطناعي</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button id="tabFieldBtn" class="active" onclick="switchTab('field')">التقاط فاتورة</button>
+      <button id="tabAdminBtn" onclick="switchTab('admin')">تقرير الإدارة</button>
+    </nav>
+  </header>
+
+  <!-- FIELD VIEW -->
+  <div id="viewField">
+
+    <div class="lock-screen" id="fieldLock">
+      <div class="icon">🔒</div>
+      <h2>صفحة الميدان محمية</h2>
+      <p>أدخل الرمز السري الخاص بالميدان للمتابعة</p>
+      <input type="password" inputmode="numeric" id="fieldPass" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter') tryUnlockField()">
+      <button class="btn btn-primary" onclick="tryUnlockField()">دخول</button>
+      <div class="lock-err" id="fieldLockErr"></div>
+    </div>
+
+    <div id="fieldContent" style="display:none;">
+    <div class="card">
+      <h2>صورة الفاتورة</h2>
+      <p class="sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
+
+      <label class="capture-zone" id="captureZone">
+        <div class="icon">📷</div>
+        <div class="label">التقاط صورة الفاتورة</div>
+        <div class="hint">اضغط لفتح الكاميرا أو اختيار صورة</div>
+        <input type="file" id="fileInput" accept="image/*" capture="environment">
+      </label>
+
+      <div class="preview-row" id="previewRow" style="display:none;">
+        <img id="previewImg" src="">
+        <div class="preview-actions">
+          <button class="btn btn-primary" id="extractBtn" onclick="extractInvoice()">استخراج البيانات بالذكاء الاصطناعي</button>
+          <button class="btn btn-ghost" onclick="resetCapture()">إزالة الصورة والتقاط أخرى</button>
+          <div class="status-line" id="statusLine"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="formCard" style="display:none;">
+      <h2>بيانات الفاتورة</h2>
+      <p class="sub">راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.</p>
+
+      <div class="field">
+        <label>نوع الوقود</label>
+        <div class="fuel-toggle">
+          <button type="button" class="sel-benzin" id="btnBenzin" onclick="setFuel('بنزين')">بنزين</button>
+          <button type="button" class="sel-diesel" id="btnDiesel" onclick="setFuel('ديزل')">ديزل</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>رقم الفاتورة</label>
+          <input id="f_invoice" type="text" placeholder="مثال: 10245">
+        </div>
+        <div class="field">
+          <label>التاريخ</label>
+          <input id="f_date" type="date">
+        </div>
+        <div class="field">
+          <label>سعر اللتر (شامل الضريبة)</label>
+          <input id="f_price" type="number" step="0.001" oninput="recalc('price')">
+        </div>
+        <div class="field">
+          <label>عدد اللترات</label>
+          <input id="f_liters" type="number" step="0.01" oninput="recalc('liters')">
+        </div>
+        <div class="field readout">
+          <label>المبلغ قبل الضريبة</label>
+          <input id="f_before_tax" type="number" step="0.01" readonly>
+        </div>
+        <div class="field readout">
+          <label>الضريبة (15%)</label>
+          <input id="f_tax" type="number" step="0.01" readonly>
+        </div>
+        <div class="field full readout">
+          <label>المبلغ الإجمالي</label>
+          <input id="f_total" type="number" step="0.01" oninput="recalc('total')">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveInvoice()">حفظ الفاتورة</button>
+        <button class="btn btn-ghost" onclick="cancelForm()">إلغاء</button>
+      </div>
+      <div id="formMsg"></div>
+    </div>
+    </div><!-- /fieldContent -->
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="viewAdmin" style="display:none;">
+
+    <div class="lock-screen" id="adminLock">
+      <div class="icon">🔒</div>
+      <h2>صفحة الإدارة محمية</h2>
+      <p>أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
+      <input type="password" inputmode="numeric" id="adminPass" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter') tryUnlockAdmin()">
+      <button class="btn btn-primary" onclick="tryUnlockAdmin()">دخول</button>
+      <div class="lock-err" id="adminLockErr"></div>
+    </div>
+
+    <div id="adminContent" style="display:none;">
+    <div class="card">
+      <h2>تقرير الفواتير</h2>
+      <p class="sub">جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.</p>
+
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="toolbar">
+        <select id="filterFuel" onchange="renderTable()">
+          <option value="all">كل الأنواع</option>
+          <option value="بنزين">بنزين فقط</option>
+          <option value="ديزل">ديزل فقط</option>
+        </select>
+        <input type="date" id="filterFrom" onchange="renderTable()">
+        <span style="color:var(--paper-dim);font-size:13px;">إلى</span>
+        <input type="date" id="filterTo" onchange="renderTable()">
+        <button class="btn btn-ghost btn-sm" onclick="loadInvoices()">تحديث</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCsv()">تصدير CSV</button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>التاريخ</th>
+              <th>النوع</th>
+              <th>سعر اللتر</th>
+              <th>اللترات</th>
+              <th>قبل الضريبة</th>
+              <th>الضريبة 15%</th>
+              <th>الإجمالي</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+          <tfoot id="tableFoot"></tfoot>
+        </table>
+      </div>
+      <div id="adminEmpty" class="empty" style="display:none;">لا توجد فواتير مسجّلة بعد</div>
+    </div>
+    </div><!-- /adminContent -->
+  </div>
+
+</div>
+
+<script>
+// ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
+const FIELD_PASSCODE = '1111';
+const ADMIN_PASSCODE = '9999';
+// --------------------------------------------
+
+let currentImage = null; // {base64, mediaType}
+let currentFuel = null;
+let allInvoices = [];
+let fieldUnlocked = false;
+let adminUnlocked = false;
+
+function switchTab(tab){
+  document.getElementById('viewField').style.display = tab==='field' ? 'block':'none';
+  document.getElementById('viewAdmin').style.display = tab==='admin' ? 'block':'none';
+  document.getElementById('tabFieldBtn').classList.toggle('active', tab==='field');
+  document.getElementById('tabAdminBtn').classList.toggle('active', tab==='admin');
+  if(tab==='admin' && adminUnlocked) loadInvoices();
+  updateGates();
+}
+
+function updateGates(){
+  document.getElementById('fieldLock').style.display = fieldUnlocked ? 'none':'block';
+  document.getElementById('fieldContent').style.display = fieldUnlocked ? 'block':'none';
+  document.getElementById('adminLock').style.display = adminUnlocked ? 'none':'block';
+  document.getElementById('adminContent').style.display = adminUnlocked ? 'block':'none';
+}
+
+function tryUnlockField(){
+  const val = document.getElementById('fieldPass').value;
+  if(val === FIELD_PASSCODE){
+    fieldUnlocked = true;
+    document.getElementById('fieldLockErr').textContent = '';
+    updateGates();
+  }else{
+    document.getElementById('fieldLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
+    document.getElementById('fieldPass').value = '';
+  }
+}
+
+function tryUnlockAdmin(){
+  const val = document.getElementById('adminPass').value;
+  if(val === ADMIN_PASSCODE){
+    adminUnlocked = true;
+    document.getElementById('adminLockErr').textContent = '';
+    updateGates();
+    loadInvoices();
+  }else{
+    document.getElementById('adminLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
+    document.getElementById('adminPass').value = '';
+  }
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const dataUrl = ev.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+    currentImage = {base64, mediaType};
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('previewRow').style.display = 'flex';
+    document.getElementById('captureZone').style.display = 'none';
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('statusLine').innerHTML = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+function resetCapture(){
+  currentImage = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('previewRow').style.display = 'none';
+  document.getElementById('captureZone').style.display = 'block';
+  document.getElementById('formCard').style.display = 'none';
+}
+
+function setStatus(html){
+  document.getElementById('statusLine').innerHTML = html;
+}
+
+async function extractInvoice(){
+  if(!currentImage) return;
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  setStatus('<div class="spinner"></div><span>جارٍ قراءة بيانات الفاتورة...</span>');
+
+  const prompt = `أنت مساعد لاستخراج بيانات فواتير الوقود من صورة فاتورة سعودية.
+اقرأ الصورة المرفقة واستخرج القيم التالية بدقة. إذا كانت قيمة غير واضحة احسبها من القيم الأخرى (الضريبة في السعودية 15%، المبلغ الإجمالي = المبلغ قبل الضريبة × 1.15).
+أعد النتيجة بصيغة JSON فقط بدون أي نص إضافي وبدون علامات markdown، بالمفاتيح التالية بالضبط:
+{
+  "invoice_number": "رقم الفاتورة كنص",
+  "date": "التاريخ بصيغة YYYY-MM-DD",
+  "fuel_type": "بنزين أو ديزل",
+  "price_per_liter": رقم (سعر اللتر شامل الضريبة),
+  "liters": رقم (عدد اللترات),
+  "amount_before_tax": رقم,
+  "tax_amount": رقم,
+  "total_amount": رقم
+}
+إذا تعذرت قراءة حقل معين اجعل قيمته null.`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            {type:"image", source:{type:"base64", media_type: currentImage.mediaType, data: currentImage.base64}},
+            {type:"text", text: prompt}
+          ]
+        }]
+      })
+    });
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    if(!textBlock) throw new Error('لم يتم استلام رد نصي');
+    let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    const parsed = JSON.parse(clean);
+    populateForm(parsed);
+    setStatus('<span style="color:#8fdcb8;">تم استخراج البيانات — راجعها ثم احفظ</span>');
+  }catch(err){
+    console.error(err);
+    setStatus('<span style="color:#f0a889;">تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً</span>');
+    populateForm({});
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function populateForm(p){
+  document.getElementById('f_invoice').value = p.invoice_number || '';
+  document.getElementById('f_date').value = p.date || new Date().toISOString().slice(0,10);
+  document.getElementById('f_price').value = p.price_per_liter ?? '';
+  document.getElementById('f_liters').value = p.liters ?? '';
+  setFuel(p.fuel_type === 'ديزل' ? 'ديزل' : 'بنزين');
+  recalc('price');
+  if(p.total_amount) document.getElementById('f_total').value = Number(p.total_amount).toFixed(2);
+  if(p.amount_before_tax) document.getElementById('f_before_tax').value = Number(p.amount_before_tax).toFixed(2);
+  if(p.tax_amount) document.getElementById('f_tax').value = Number(p.tax_amount).toFixed(2);
+  document.getElementById('formCard').style.display = 'block';
+  document.getElementById('formMsg').innerHTML = '';
+}
+
+function setFuel(type){
+  currentFuel = type;
+  document.getElementById('btnBenzin').classList.toggle('active', type==='بنزين');
+  document.getElementById('btnDiesel').classList.toggle('active', type==='ديزل');
+}
+
+function recalc(source){
+  const price = parseFloat(document.getElementById('f_price').value) || 0;
+  const liters = parseFloat(document.getElementById('f_liters').value) || 0;
+  if(source === 'total'){
+    const total = parseFloat(document.getElementById('f_total').value) || 0;
+    const before = total / 1.15;
+    document.getElementById('f_before_tax').value = before.toFixed(2);
+    document.getElementById('f_tax').value = (total - before).toFixed(2);
+    return;
+  }
+  const total = price * liters;
+  const before = total / 1.15;
+  const tax = total - before;
+  document.getElementById('f_before_tax').value = total ? before.toFixed(2) : '';
+  document.getElementById('f_tax').value = total ? tax.toFixed(2) : '';
+  document.getElementById('f_total').value = total ? total.toFixed(2) : '';
+}
+
+function cancelForm(){
+  document.getElementById('formCard').style.display = 'none';
+  resetCapture();
+}
+
+async function saveInvoice(){
+  const record = {
+    invoice_number: document.getElementById('f_invoice').value.trim(),
+    date: document.getElementById('f_date').value,
+    fuel_type: currentFuel || 'بنزين',
+    price_per_liter: parseFloat(document.getElementById('f_price').value) || 0,
+    liters: parseFloat(document.getElementById('f_liters').value) || 0,
+    amount_before_tax: parseFloat(document.getElementById('f_before_tax').value) || 0,
+    tax_amount: parseFloat(document.getElementById('f_tax').value) || 0,
+    total_amount: parseFloat(document.getElementById('f_total').value) || 0,
+    saved_at: new Date().toISOString()
+  };
+  if(!record.invoice_number || !record.date || !record.liters){
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل</div>';
+    return;
+  }
+  const key = 'invoice:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  try{
+    const result = await window.storage.set(key, JSON.stringify(record), true);
+    if(!result) throw new Error('فشل الحفظ');
+    document.getElementById('formMsg').innerHTML = '<div class="msg ok">تم حفظ الفاتورة بنجاح ✓</div>';
+    setTimeout(()=>{
+      document.getElementById('formCard').style.display = 'none';
+      resetCapture();
+    }, 1200);
+  }catch(err){
+    console.error(err);
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">تعذّر حفظ الفاتورة، حاول مرة أخرى</div>';
+  }
+}
+
+async function loadInvoices(){
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '<tr><td colspan="9" class="empty">جارٍ التحميل...</td></tr>';
+  try{
+    const listResult = await window.storage.list('invoice:', true);
+    const keys = (listResult && listResult.keys) || [];
+    const records = [];
+    for(const k of keys){
+      try{
+        const r = await window.storage.get(k, true);
+        if(r && r.value){
+          const parsed = JSON.parse(r.value);
+          parsed._key = k;
+          records.push(parsed);
+        }
+      }catch(e){ /* skip unreadable key */ }
+    }
+    records.sort((a,b) => (b.date||'').localeCompare(a.date||'') || (b.saved_at||'').localeCompare(a.saved_at||''));
+    allInvoices = records;
+    renderTable();
+  }catch(err){
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">تعذّر تحميل البيانات</td></tr>';
+  }
+}
+
+function renderTable(){
+  const fuelFilter = document.getElementById('filterFuel').value;
+  const from = document.getElementById('filterFrom').value;
+  const to = document.getElementById('filterTo').value;
+
+  let rows = allInvoices.filter(r => {
+    if(fuelFilter !== 'all' && r.fuel_type !== fuelFilter) return false;
+    if(from && r.date && r.date < from) return false;
+    if(to && r.date && r.date > to) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  const tfoot = document.getElementById('tableFoot');
+  const emptyEl = document.getElementById('adminEmpty');
+
+  if(rows.length === 0){
+    tbody.innerHTML = '';
+    tfoot.innerHTML = '';
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escapeHtml(r.invoice_number)}</td>
+        <td>${escapeHtml(r.date)}</td>
+        <td><span class="pill ${r.fuel_type==='ديزل'?'diesel':'benzin'}">${escapeHtml(r.fuel_type)}</span></td>
+        <td>${fmt(r.price_per_liter)}</td>
+        <td>${fmt(r.liters)}</td>
+        <td>${fmt(r.amount_before_tax)}</td>
+        <td>${fmt(r.tax_amount)}</td>
+        <td>${fmt(r.total_amount)}</td>
+        <td><button class="row-del" title="حذف" onclick="deleteInvoice('${r._key}')">✕</button></td>
+      </tr>
+    `).join('');
+
+    const sum = (key) => rows.reduce((s,r)=> s + (parseFloat(r[key])||0), 0);
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="4">الإجمالي (${rows.length} فاتورة)</td>
+        <td>${fmt(sum('liters'))}</td>
+        <td>${fmt(sum('amount_before_tax'))}</td>
+        <td>${fmt(sum('tax_amount'))}</td>
+        <td>${fmt(sum('total_amount'))}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+
+  const benzinRows = rows.filter(r=>r.fuel_type==='بنزين');
+  const dieselRows = rows.filter(r=>r.fuel_type==='ديزل');
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="n">${rows.length}</div><div class="l">عدد الفواتير</div></div>
+    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.liters)||0),0))}</div><div class="l">إجمالي اللترات</div></div>
+    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.total_amount)||0),0))}</div><div class="l">إجمالي المبلغ</div></div>
+    <div class="stat"><div class="n">${benzinRows.length} / ${dieselRows.length}</div><div class="l">بنزين / ديزل</div></div>
+  `;
+}
+
+async function deleteInvoice(key){
+  if(!confirm('هل تريد حذف هذه الفاتورة؟')) return;
+  try{
+    await window.storage.delete(key, true);
+    allInvoices = allInvoices.filter(r => r._key !== key);
+    renderTable();
+  }catch(err){
+    console.error(err);
+    alert('تعذّر حذف الفاتورة');
+  }
+}
+
+function exportCsv(){
+  const rows = allInvoices;
+  if(rows.length === 0){ alert('لا توجد بيانات للتصدير'); return; }
+  const headers = ['رقم الفاتورة','التاريخ','النوع','سعر اللتر','اللترات','قبل الضريبة','الضريبة 15%','الإجمالي'];
+  const lines = [headers.join(',')];
+  rows.forEach(r=>{
+    lines.push([r.invoice_number, r.date, r.fuel_type, r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
+  });
+  const blob = new Blob(["\uFEFF" + lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'تقرير_فواتير_الوقود.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function fmt(n){
+  n = parseFloat(n) || 0;
+  return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+setFuel('بنزين');
+updateGates();
+</script>
+</body>
+</html>
