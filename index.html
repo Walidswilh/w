@@ -70,10 +70,11 @@
   .card .sub{color:var(--paper-dim);font-size:13px;margin:0 0 18px;}
 
   /* --- Field capture --- */
+  .capture-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .capture-zone{
     border:1.5px dashed var(--paper-dim);
     border-radius:14px;
-    padding:26px;
+    padding:22px 16px;
     text-align:center;
     cursor:pointer;
     transition:.18s ease;
@@ -245,18 +246,26 @@
       <h2>صورة الفاتورة</h2>
       <p class="sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
 
-      <label class="capture-zone" id="captureZone">
-        <div class="icon">📷</div>
-        <div class="label">التقاط صورة الفاتورة</div>
-        <div class="hint">اضغط لفتح الكاميرا أو اختيار صورة</div>
-        <input type="file" id="fileInput" accept="image/*" capture="environment">
-      </label>
+      <div class="capture-options" id="captureOptions">
+        <label class="capture-zone" id="captureZone">
+          <div class="icon">📷</div>
+          <div class="label">التقاط بالكاميرا</div>
+          <div class="hint">فتح الكاميرا مباشرة</div>
+          <input type="file" id="fileInputCamera" accept="image/*" capture="environment">
+        </label>
+        <label class="capture-zone" id="galleryZone">
+          <div class="icon">🖼️</div>
+          <div class="label">اختيار من ألبوم الصور</div>
+          <div class="hint">اختيار صورة محفوظة مسبقاً</div>
+          <input type="file" id="fileInputGallery" accept="image/*">
+        </label>
+      </div>
 
       <div class="preview-row" id="previewRow" style="display:none;">
         <img id="previewImg" src="">
         <div class="preview-actions">
           <button class="btn btn-primary" id="extractBtn" onclick="extractInvoice()">استخراج البيانات بالذكاء الاصطناعي</button>
-          <button class="btn btn-ghost" onclick="resetCapture()">إزالة الصورة والتقاط أخرى</button>
+          <button class="btn btn-ghost" onclick="resetCapture()">إزالة الصورة واختيار أخرى</button>
           <div class="status-line" id="statusLine"></div>
         </div>
       </div>
@@ -381,8 +390,8 @@
 
 <script>
 // ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
-const FIELD_PASSCODE = 'ww11';
-const ADMIN_PASSCODE = 'ww99';
+const FIELD_PASSCODE = '1111';
+const ADMIN_PASSCODE = '9999';
 // --------------------------------------------
 
 let currentImage = null; // {base64, mediaType}
@@ -434,21 +443,23 @@ function tryUnlockAdmin(){
 
 function onPlateInput(){
   const plate = document.getElementById('f_plate').value.trim();
-  const zone = document.getElementById('captureZone');
-  zone.classList.toggle('locked', plate.length === 0);
+  const locked = plate.length === 0;
+  document.getElementById('captureZone').classList.toggle('locked', locked);
+  document.getElementById('galleryZone').classList.toggle('locked', locked);
 }
 
-document.getElementById('captureZone').addEventListener('click', function(e){
+function guardPlateBeforeCapture(e){
   const plate = document.getElementById('f_plate').value.trim();
   if(!plate){
     e.preventDefault();
     document.getElementById('f_plate').focus();
     setStatus('<span style="color:#f0a889;">أدخل رقم لوحة السيارة أولاً</span>');
   }
-});
+}
+document.getElementById('captureZone').addEventListener('click', guardPlateBeforeCapture);
+document.getElementById('galleryZone').addEventListener('click', guardPlateBeforeCapture);
 
-document.getElementById('fileInput').addEventListener('change', function(e){
-  const file = e.target.files[0];
+function handleInvoiceFile(file){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = function(ev){
@@ -458,18 +469,26 @@ document.getElementById('fileInput').addEventListener('change', function(e){
     currentImage = {base64, mediaType};
     document.getElementById('previewImg').src = dataUrl;
     document.getElementById('previewRow').style.display = 'flex';
-    document.getElementById('captureZone').style.display = 'none';
+    document.getElementById('captureOptions').style.display = 'none';
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('statusLine').innerHTML = '';
   };
   reader.readAsDataURL(file);
+}
+
+document.getElementById('fileInputCamera').addEventListener('change', function(e){
+  handleInvoiceFile(e.target.files[0]);
+});
+document.getElementById('fileInputGallery').addEventListener('change', function(e){
+  handleInvoiceFile(e.target.files[0]);
 });
 
 function resetCapture(){
   currentImage = null;
-  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInputCamera').value = '';
+  document.getElementById('fileInputGallery').value = '';
   document.getElementById('previewRow').style.display = 'none';
-  document.getElementById('captureZone').style.display = 'block';
+  document.getElementById('captureOptions').style.display = 'grid';
   document.getElementById('formCard').style.display = 'none';
 }
 
