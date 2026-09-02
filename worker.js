@@ -14,12 +14,12 @@
  *    - Value: مفتاحك من console.anthropic.com
  *    - فعّل خيار "Encrypt" حتى يبقى سري.
  * 4. انسخ رابط الـ Worker (مثل: https://fuel-invoice-proxy.YOUR-SUBDOMAIN.workers.dev)
- *    وضعه في متغير WORKER_URL داخل ملف الموقع (fuel-invoices.html).
+ *    وضعه في متغير WORKER_URL داخل ملف الموقع (index.html).
  */
 
 // غيّر هذا لاحقاً إلى دومين موقعك على GitHub Pages لتقييد الوصول، مثال:
 // const ALLOWED_ORIGIN = "https://username.github.io";
-const ALLOWED_ORIGIN = "*";
+const ALLOWED_ORIGIN = "https://walidswilh.github.io/w/";
 
 export default {
   async fetch(request, env) {
