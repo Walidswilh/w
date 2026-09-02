@@ -1,916 +1,261 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سجل فواتير الوقود</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#131a1a;
-    --night:#0e2226;
-    --panel:#16302f;
-    --panel-2:#1c3b39;
-    --amber:#e8a13a;
-    --amber-dim:#b97f2b;
-    --diesel:#4a9c7c;
-    --diesel-dim:#356e58;
-    --paper:#f4efe4;
-    --paper-dim:#cfc6b3;
-    --line: rgba(244,239,228,0.14);
-    --danger:#d9704f;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background: var(--night);
-    color: var(--paper);
-    font-family:'Tajawal', sans-serif;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
-
-  header.top{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:18px 4px 22px;
-    border-bottom:1px solid var(--line);
-    margin-bottom:22px;
-  }
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand .mark{
-    width:40px;height:40px;border-radius:10px;
-    background:linear-gradient(160deg,var(--amber),var(--amber-dim));
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Cairo',sans-serif;font-weight:800;color:var(--night);font-size:18px;
-    flex-shrink:0;
-  }
-  .brand h1{
-    font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;margin:0;letter-spacing:0;
-  }
-  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--paper-dim);}
-
-  nav.tabs{display:flex;gap:8px;background:var(--panel);padding:5px;border-radius:12px;}
-  nav.tabs button{
-    border:none;background:transparent;color:var(--paper-dim);
-    font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;
-    padding:9px 16px;border-radius:9px;cursor:pointer;transition:.18s ease;
-  }
-  nav.tabs button.active{background:var(--amber);color:var(--night);}
-
-  .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:22px;
-    margin-bottom:18px;
-  }
-  .card h2{font-family:'Cairo',sans-serif;font-size:17px;margin:0 0 4px;font-weight:700;}
-  .card .sub{color:var(--paper-dim);font-size:13px;margin:0 0 18px;}
-
-  /* --- Field capture --- */
-  .capture-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .capture-zone{
-    border:1.5px dashed var(--paper-dim);
-    border-radius:14px;
-    padding:22px 16px;
-    text-align:center;
-    cursor:pointer;
-    transition:.18s ease;
-    background:rgba(244,239,228,0.02);
-  }
-  .capture-zone:hover{border-color:var(--amber);background:rgba(232,161,58,0.06);}
-  .capture-zone.locked{opacity:.45;cursor:not-allowed;}
-  .capture-zone.locked:hover{border-color:var(--paper-dim);background:rgba(244,239,228,0.02);}
-  .capture-zone .icon{font-size:34px;margin-bottom:8px;}
-  .capture-zone .label{font-weight:700;font-family:'Cairo',sans-serif;}
-  .capture-zone .hint{font-size:12.5px;color:var(--paper-dim);margin-top:4px;}
-  input[type=file]{display:none;}
-
-  .preview-row{display:flex;gap:14px;align-items:flex-start;margin-top:16px;}
-  .preview-row img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
-  .preview-actions{display:flex;flex-direction:column;gap:8px;flex:1;}
-
-  .btn{
-    font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;
-    padding:11px 18px;border-radius:10px;border:none;cursor:pointer;
-    transition:.15s ease; display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  }
-  .btn-primary{background:var(--amber);color:var(--night);}
-  .btn-primary:hover{background:#f0ac48;}
-  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-  .btn-ghost{background:transparent;color:var(--paper);border:1px solid var(--line);}
-  .btn-ghost:hover{border-color:var(--paper-dim);}
-  .btn-diesel{background:var(--diesel);color:#08211a;}
-  .btn-diesel:hover{background:#5cb28e;}
-  .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px;}
-
-  .status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--paper-dim);margin-top:10px;min-height:18px;}
-  .spinner{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--amber);animation:spin .7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
-  .field{display:flex;flex-direction:column;gap:6px;}
-  .field.full{grid-column:1/-1;}
-  .field label{font-size:12.5px;color:var(--paper-dim);font-weight:500;}
-  .field input, .field select{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
-    padding:10px 12px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:14.5px;
-  }
-  .field input:focus, .field select:focus{outline:none;border-color:var(--amber);}
-  .field.readout input{color:var(--paper-dim);}
-
-  .fuel-toggle{display:flex;gap:8px;}
-  .fuel-toggle button{
-    flex:1;padding:10px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);
-    color:var(--paper-dim);font-family:'Tajawal',sans-serif;font-weight:700;cursor:pointer;font-size:14px;
-  }
-  .fuel-toggle button.sel-benzin.active{background:var(--amber);color:var(--night);border-color:var(--amber);}
-  .fuel-toggle button.sel-diesel.active{background:var(--diesel);color:#08211a;border-color:var(--diesel);}
-
-  .form-actions{display:flex;gap:10px;margin-top:20px;}
-  .msg{padding:10px 14px;border-radius:9px;font-size:13.5px;margin-top:14px;}
-  .msg.ok{background:rgba(74,156,124,0.16);color:#8fdcb8;border:1px solid rgba(74,156,124,0.35);}
-  .msg.err{background:rgba(217,112,79,0.14);color:#f0a889;border:1px solid rgba(217,112,79,0.35);}
-
-  .audit-panel{margin-top:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);}
-  .audit-panel.ok{border-color:rgba(74,156,124,0.4);}
-  .audit-panel.warn{border-color:rgba(232,161,58,0.45);}
-  .audit-panel .audit-title{font-family:'Cairo',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-  .audit-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
-  .audit-list li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;}
-  .audit-list .tick{flex-shrink:0;font-size:13px;}
-  .audit-list .tick.good{color:var(--diesel);}
-  .audit-list .tick.bad{color:var(--amber);}
-  .audit-list .fname{font-weight:700;}
-  .audit-list .fnote{color:var(--paper-dim);}
-
-  /* --- Admin --- */
-  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
-  .toolbar select, .toolbar input{
-    background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
-    padding:9px 12px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13.5px;
-  }
-  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
-  .stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
-  .stat .n{font-family:'Cairo',sans-serif;font-weight:800;font-size:20px;}
-  .stat .l{font-size:11.5px;color:var(--paper-dim);margin-top:2px;}
-
-  table{width:100%;border-collapse:collapse;font-size:13.5px;}
-  thead th{
-    text-align:right;padding:10px 12px;color:var(--paper-dim);font-weight:600;font-size:12px;
-    border-bottom:1px solid var(--line);white-space:nowrap;
-  }
-  tbody td{padding:11px 12px;border-bottom:1px solid rgba(244,239,228,0.06);white-space:nowrap;}
-  tbody tr:hover{background:rgba(244,239,228,0.03);}
-  .pill{padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
-  .pill.benzin{background:rgba(232,161,58,0.18);color:var(--amber);}
-  .pill.diesel{background:rgba(74,156,124,0.18);color:var(--diesel);}
-  tfoot td{padding:12px;font-weight:700;border-top:1.5px solid var(--paper-dim);font-family:'Cairo',sans-serif;font-size:13px;}
-  .row-del{background:none;border:none;color:var(--paper-dim);cursor:pointer;font-size:15px;}
-  .row-del:hover{color:var(--danger);}
-  .empty{text-align:center;padding:40px 10px;color:var(--paper-dim);}
-  .table-scroll{overflow-x:auto;}
-
-  .lock-screen{
-    max-width:340px;margin:60px auto;text-align:center;
-    background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:34px 28px;
-  }
-  .lock-screen .icon{
-    width:50px;height:50px;border-radius:50%;background:var(--panel-2);
-    display:flex;align-items:center;justify-content:center;font-size:22px;
-    margin:0 auto 16px;
-  }
-  .lock-screen h2{font-family:'Cairo',sans-serif;font-size:17px;margin:0 0 6px;}
-  .lock-screen p{color:var(--paper-dim);font-size:13px;margin:0 0 20px;}
-  .lock-screen input{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--paper);
-    padding:12px 14px;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:18px;
-    text-align:center;letter-spacing:3px;margin-bottom:12px;
-  }
-  .lock-screen input:focus{outline:none;border-color:var(--amber);}
-  .lock-screen .btn{width:100%;}
-  .lock-screen .lock-err{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px;}
-
-  @media(max-width:640px){
-    .form-grid{grid-template-columns:1fr;}
-    .stats-row{grid-template-columns:1fr 1fr;}
-    header.top{flex-direction:column;align-items:flex-start;gap:14px;}
-    nav.tabs{width:100%;}
-    nav.tabs button{flex:1;}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل فواتير الوقود الذكي</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        h1, h2 {
+            margin-top: 0;
+        }
+        .section-protected {
+            border: 2px dashed #9ca3af;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            display: inline-block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .btn:hover { background: var(--primary-dark); }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .flex-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .hidden { display: none; }
+        .loading {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: right;
+        }
+        th { background: #f3f4f6; }
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 15px;
+            border-radius: 6px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="top">
-    <div class="brand">
-      <div class="mark">و</div>
-      <div>
-        <h1>سجل فواتير الوقود</h1>
-        <p>التقاط الفاتورة ميدانياً وتسجيلها تلقائياً بالذكاء الاصطناعي</p>
-      </div>
-    </div>
-    <nav class="tabs">
-      <button id="tabFieldBtn" class="active" onclick="switchTab('field')">التقاط فاتورة</button>
-      <button id="tabAdminBtn" onclick="switchTab('admin')">تقرير الإدارة</button>
-    </nav>
-  </header>
+<div class="container">
+    <h1>⛽ سجل فواتير الوقود</h1>
 
-  <!-- FIELD VIEW -->
-  <div id="viewField">
-
-    <div class="lock-screen" id="fieldLock">
-      <div class="icon">🔒</div>
-      <h2>صفحة الميدان محمية</h2>
-      <p>أدخل الرمز السري الخاص بالميدان للمتابعة</p>
-      <input type="password" id="fieldPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockField()">
-      <button class="btn btn-primary" onclick="tryUnlockField()">دخول</button>
-      <div class="lock-err" id="fieldLockErr"></div>
-    </div>
-
-    <div id="fieldContent" style="display:none;">
-    <div class="card">
-      <h2>رقم لوحة السيارة</h2>
-      <p class="sub">أدخل رقم اللوحة أولاً قبل تصوير الفاتورة — سيتم ربط الفاتورة به.</p>
-      <div class="field">
-        <label>رقم اللوحة (أرقام فقط، 4 أرقام كحد أقصى)</label>
-        <input id="f_plate" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="مثال: 1234" oninput="onPlateInput()" onkeydown="return guardPlateKey(event)">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>صورة الفاتورة</h2>
-      <p class="sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
-
-      <div class="capture-options" id="captureOptions">
-        <label class="capture-zone" id="captureZone">
-          <div class="icon">📷</div>
-          <div class="label">التقاط بالكاميرا</div>
-          <div class="hint">فتح الكاميرا مباشرة</div>
-          <input type="file" id="fileInputCamera" accept="image/*" capture="environment">
-        </label>
-        <label class="capture-zone" id="galleryZone">
-          <div class="icon">🖼️</div>
-          <div class="label">اختيار من ألبوم الصور</div>
-          <div class="hint">اختيار صورة محفوظة مسبقاً</div>
-          <input type="file" id="fileInputGallery" accept="image/*">
-        </label>
-      </div>
-
-      <div class="preview-row" id="previewRow" style="display:none;">
-        <img id="previewImg" src="">
-        <div class="preview-actions">
-          <button class="btn btn-primary" id="extractBtn" onclick="extractInvoice()">استخراج البيانات بالذكاء الاصطناعي</button>
-          <button class="btn btn-ghost" onclick="resetCapture()">إزالة الصورة واختيار أخرى</button>
-          <div class="status-line" id="statusLine"></div>
+    <!-- ================= صفحة الميدان ================= -->
+    <div class="card" id="field-section">
+        <h2>🔒 صفحة الميدان محمية</h2>
+        <div class="form-group" id="field-auth">
+            <p>أدخل الرمز السري الخاص بالميدان للمتابعة</p>
+            <input type="password" id="field-pin" placeholder="الرمز السري">
+            <button class="btn" style="margin-top:10px;" onclick="unlockField()">دخول</button>
         </div>
-      </div>
-    </div>
 
-    <div class="card" id="formCard" style="display:none;">
-      <h2>بيانات الفاتورة</h2>
-      <p class="sub">راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.</p>
+        <div id="field-content" class="hidden">
+            <div class="form-group">
+                <label>رقم لوحة السيارة (أرقام فقط، 4 أرقام كحد أقصى)</label>
+                <input type="text" id="car-plate" maxlength="4" placeholder="مثال: 1234">
+            </div>
 
-      <div class="field">
-        <label>نوع الوقود</label>
-        <div class="fuel-toggle">
-          <button type="button" class="sel-benzin" id="btnBenzin" onclick="setFuel('بنزين')">بنزين</button>
-          <button type="button" class="sel-diesel" id="btnDiesel" onclick="setFuel('ديزل')">ديزل</button>
-        </div>
-      </div>
+            <div class="form-group">
+                <label>صورة الفاتورة</label>
+                <p style="font-size:14px; color:#6b7280;">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
+                <input type="file" id="invoice-file" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(this)">
+                
+                <button class="btn" onclick="document.getElementById('invoice-file').click()">📷 التقاط بالكاميرا / اختيار صورة</button>
+                
+                <img id="image-preview" class="preview-img hidden" alt="معاينة الفاتورة">
+                
+                <div class="flex-buttons hidden" id="ai-actions">
+                    <button class="btn" onclick="triggerAiExtraction()">🔍 استخراج البيانات بالذكاء الاصطناعي</button>
+                    <button class="btn btn-danger" onclick="removeImage()">إزالة الصورة</button>
+                </div>
+            </div>
 
-      <div class="form-grid">
-        <div class="field">
-          <label>رقم الفاتورة</label>
-          <input id="f_invoice" type="text" placeholder="مثال: 10245">
-        </div>
-        <div class="field">
-          <label>التاريخ</label>
-          <input id="f_date" type="date">
-        </div>
-        <div class="field">
-          <label>سعر اللتر (شامل الضريبة)</label>
-          <input id="f_price" type="number" step="0.001" oninput="recalc('price')">
-        </div>
-        <div class="field">
-          <label>عدد اللترات</label>
-          <input id="f_liters" type="number" step="0.01" oninput="recalc('liters')">
-        </div>
-        <div class="field readout">
-          <label>المبلغ قبل الضريبة</label>
-          <input id="f_before_tax" type="number" step="0.01" readonly>
-        </div>
-        <div class="field readout">
-          <label>الضريبة (15%)</label>
-          <input id="f_tax" type="number" step="0.01" readonly>
-        </div>
-        <div class="field full readout">
-          <label>المبلغ الإجمالي</label>
-          <input id="f_total" type="number" step="0.01" oninput="recalc('total')">
-        </div>
-      </div>
+            <div id="ai-loading-status" class="loading hidden">⏳ جاري معالجة وقراءة الفاتورة بالذكاء الاصطناعي... يرجى الانتظار</div>
 
-      <div class="form-actions">
-        <button class="btn btn-diesel" id="auditBtn" onclick="auditInvoice()">🔍 تدقيق البيانات مع الصورة</button>
-      </div>
-      <div id="auditResult"></div>
+            <div class="form-group" style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
+                <h3>بيانات الفاتورة</h3>
+                <p style="font-size:14px; color:#6b7280;">راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.</p>
+                
+                <label>نوع الوقود</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="fuel_type" id="fuel-petrol" value="بنزين" checked> بنزين</label>
+                    <label><input type="radio" name="fuel_type" id="fuel-diesel" value="ديزل"> ديزل</label>
+                </div>
+            </div>
 
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveInvoice()">حفظ الفاتورة</button>
-        <button class="btn btn-ghost" onclick="cancelForm()">إلغاء</button>
-      </div>
-      <div id="formMsg"></div>
-    </div>
-    </div><!-- /fieldContent -->
-  </div>
+            <div class="form-group">
+                <label>رقم الفاتورة</label>
+                <input type="text" id="invoice-number">
+            </div>
+            <div class="form-group">
+                <label>التاريخ</label>
+                <input type="date" id="invoice-date">
+            </div>
+            <div class="form-group">
+                <label>سعر اللتر (شامل الضريبة)</label>
+                <input type="number" id="price-per-liter" step="0.01" oninput="calculateTotals()">
+            </div>
+            <div class="form-group">
+                <label>عدد اللترات</label>
+                <input type="number" id="liters-count" step="0.01" oninput="calculateTotals()">
+            </div>
+            <div class="form-group">
+                <label>المبلغ قبل الضريبة</label>
+                <input type="number" id="subtotal" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>الضريبة (15%)</label>
+                <input type="number" id="tax-amount" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>المبلغ الإجمالي</label>
+                <input type="number" id="total-amount" step="0.01">
+            </div>
 
-  <!-- ADMIN VIEW -->
-  <div id="viewAdmin" style="display:none;">
-
-    <div class="lock-screen" id="adminLock">
-      <div class="icon">🔒</div>
-      <h2>صفحة الإدارة محمية</h2>
-      <p>أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
-      <input type="password" id="adminPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockAdmin()">
-      <button class="btn btn-primary" onclick="tryUnlockAdmin()">دخول</button>
-      <div class="lock-err" id="adminLockErr"></div>
+            <div class="flex-buttons">
+                <button class="btn" onclick="saveInvoice()">حفظ الفاتورة</button>
+                <button class="btn btn-secondary" onclick="resetFieldForm()">إلغاء</button>
+            </div>
+        </div>
     </div>
 
-    <div id="adminContent" style="display:none;">
-    <div class="card">
-      <h2>تقرير الفواتير</h2>
-      <p class="sub">جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.</p>
+    <!-- ================= صفحة الإدارة ================= -->
+    <div class="card" id="admin-section">
+        <h2>🔒 صفحة الإدارة محمية</h2>
+        <div class="form-group" id="admin-auth">
+            <p>أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
+            <input type="password" id="admin-pin" placeholder="الرمز السري">
+            <button class="btn" style="margin-top:10px;" onclick="unlockAdmin()">دخول</button>
+        </div>
 
-      <div class="stats-row" id="statsRow"></div>
+        <div id="admin-content" class="hidden">
+            <h3>تقرير الفواتير</h3>
+            <p style="font-size:14px; color:#6b7280;">جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.</p>
+            
+            <div class="flex-buttons" style="margin-bottom:15px;">
+                <button class="btn btn-secondary" onclick="filterTable('all')">كل الأنواع</button>
+                <button class="btn btn-secondary" onclick="filterTable('بنزين')">بنزين فقط</button>
+                <button class="btn btn-secondary" onclick="filterTable('ديزل')">ديزل فقط</button>
+                <button class="btn" onclick="exportToCSV()">تصدير CSV</button>
+            </div>
 
-      <div class="toolbar">
-        <input type="text" id="filterPlate" placeholder="بحث برقم اللوحة" oninput="renderTable()">
-        <select id="filterFuel" onchange="renderTable()">
-          <option value="all">كل الأنواع</option>
-          <option value="بنزين">بنزين فقط</option>
-          <option value="ديزل">ديزل فقط</option>
-        </select>
-        <input type="date" id="filterFrom" onchange="renderTable()">
-        <span style="color:var(--paper-dim);font-size:13px;">إلى</span>
-        <input type="date" id="filterTo" onchange="renderTable()">
-        <button class="btn btn-ghost btn-sm" onclick="loadInvoices()">تحديث</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportCsv()">تصدير CSV</button>
-      </div>
-
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>رقم اللوحة</th>
-              <th>رقم الفاتورة</th>
-              <th>التاريخ</th>
-              <th>النوع</th>
-              <th>سعر اللتر</th>
-              <th>اللترات</th>
-              <th>قبل الضريبة</th>
-              <th>الضريبة 15%</th>
-              <th>الإجمالي</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-          <tfoot id="tableFoot"></tfoot>
-        </table>
-      </div>
-      <div id="adminEmpty" class="empty" style="display:none;">لا توجد فواتير مسجّلة بعد</div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم اللوحة</th>
+                            <th>رقم الفاتورة</th>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>سعر اللتر</th>
+                            <th>اللترات</th>
+                            <th>قبل الضريبة</th>
+                            <th>الضريبة 15%</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoices-table-body">
+                        <tr>
+                            <td colspan="9" style="text-align:center; color:#6b7280;">لا توجد فواتير مسجّلة بعد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    </div><!-- /adminContent -->
-  </div>
-
 </div>
 
 <script>
-// ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
-const FIELD_PASSCODE = 'ww11';
-const ADMIN_PASSCODE = 'ww99';
-// --------------------------------------------
+    // تكوين الإعدادات الأساسية
+    const WORKER_URL = "https://red-dream-6350.zozo3033.workers.dev"; // ⚠️ استبدل هذا برابط Cloudflare Worker الخاص بك
+    const FIELD_PIN = "1234";  // الرمز الافتراضي للميدان (عدّله كما تحب)
+    const ADMIN_PIN = "5678";  // الرمز الافتراضي للإدارة (عدّله كما تحب)
+    
+    let invoicesDatabase = JSON.parse(localStorage.getItem('fuel_invoices')) || [];
+    let selectedImageBase64 = null;
+    let selectedImageType = null;
 
-// ---- رابط الـ Cloudflare Worker (الوسيط الآمن لاستدعاء الذكاء الاصطناعي) ----
-// بعد نشر الـ Worker، ضع رابطه هنا بدل النص أدناه. مثال:
-// const WORKER_URL = 'https://fuel-invoice-proxy.username.workers.dev';
-const WORKER_URL = ' https://api.anthropic.com/v1/messages';
-// عند التشغيل داخل Claude.ai نفسه، الاستدعاء المباشر يعمل تلقائياً بدون Worker.
-// خارج Claude.ai (مثل GitHub Pages)، لازم رابط الـ Worker يكون مضبوطاً وإلا ما يعمل الاستخراج.
-function aiEndpoint(){
-  return WORKER_URL.includes('YOUR-WORKER-NAME') ? "https://api.anthropic.com/v1/messages" : WORKER_URL;
-}
-// --------------------------------------------------------------------------
-
-let currentImage = null; // {base64, mediaType}
-let currentFuel = null;
-let allInvoices = [];
-let fieldUnlocked = false;
-let adminUnlocked = false;
-
-function switchTab(tab){
-  document.getElementById('viewField').style.display = tab==='field' ? 'block':'none';
-  document.getElementById('viewAdmin').style.display = tab==='admin' ? 'block':'none';
-  document.getElementById('tabFieldBtn').classList.toggle('active', tab==='field');
-  document.getElementById('tabAdminBtn').classList.toggle('active', tab==='admin');
-  if(tab==='admin' && adminUnlocked) loadInvoices();
-  updateGates();
-}
-
-function updateGates(){
-  document.getElementById('fieldLock').style.display = fieldUnlocked ? 'none':'block';
-  document.getElementById('fieldContent').style.display = fieldUnlocked ? 'block':'none';
-  document.getElementById('adminLock').style.display = adminUnlocked ? 'none':'block';
-  document.getElementById('adminContent').style.display = adminUnlocked ? 'block':'none';
-}
-
-function tryUnlockField(){
-  const val = document.getElementById('fieldPass').value;
-  if(val === FIELD_PASSCODE){
-    fieldUnlocked = true;
-    document.getElementById('fieldLockErr').textContent = '';
-    updateGates();
-  }else{
-    document.getElementById('fieldLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
-    document.getElementById('fieldPass').value = '';
-  }
-}
-
-function tryUnlockAdmin(){
-  const val = document.getElementById('adminPass').value;
-  if(val === ADMIN_PASSCODE){
-    adminUnlocked = true;
-    document.getElementById('adminLockErr').textContent = '';
-    updateGates();
-    loadInvoices();
-  }else{
-    document.getElementById('adminLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
-    document.getElementById('adminPass').value = '';
-  }
-}
-
-function guardPlateKey(e){
-  const allowedControlKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
-  if(allowedControlKeys.includes(e.key)) return true;
-  if(e.ctrlKey || e.metaKey) return true; // allow copy/paste/select-all shortcuts
-  if(!/^[0-9]$/.test(e.key)){
-    e.preventDefault();
-    return false;
-  }
-  const input = document.getElementById('f_plate');
-  const hasSelection = input.selectionStart !== input.selectionEnd;
-  if(!hasSelection && input.value.length >= 4){
-    e.preventDefault();
-    return false;
-  }
-  return true;
-}
-
-function onPlateInput(){
-  const input = document.getElementById('f_plate');
-  const digitsOnly = input.value.replace(/[^0-9]/g,'').slice(0,4);
-  if(input.value !== digitsOnly) input.value = digitsOnly;
-  const locked = digitsOnly.length === 0;
-  document.getElementById('captureZone').classList.toggle('locked', locked);
-  document.getElementById('galleryZone').classList.toggle('locked', locked);
-}
-
-function guardPlateBeforeCapture(e){
-  const plate = document.getElementById('f_plate').value.trim();
-  if(!plate){
-    e.preventDefault();
-    document.getElementById('f_plate').focus();
-    setStatus('<span style="color:#f0a889;">أدخل رقم لوحة السيارة أولاً</span>');
-  }
-}
-document.getElementById('captureZone').addEventListener('click', guardPlateBeforeCapture);
-document.getElementById('galleryZone').addEventListener('click', guardPlateBeforeCapture);
-
-function handleInvoiceFile(file){
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    const dataUrl = ev.target.result;
-    const base64 = dataUrl.split(',')[1];
-    const mediaType = file.type || 'image/jpeg';
-    currentImage = {base64, mediaType};
-    document.getElementById('previewImg').src = dataUrl;
-    document.getElementById('previewRow').style.display = 'flex';
-    document.getElementById('captureOptions').style.display = 'none';
-    document.getElementById('formCard').style.display = 'none';
-    document.getElementById('statusLine').innerHTML = '';
-  };
-  reader.readAsDataURL(file);
-}
-
-document.getElementById('fileInputCamera').addEventListener('change', function(e){
-  handleInvoiceFile(e.target.files[0]);
-});
-document.getElementById('fileInputGallery').addEventListener('change', function(e){
-  handleInvoiceFile(e.target.files[0]);
-});
-
-function resetCapture(){
-  currentImage = null;
-  document.getElementById('fileInputCamera').value = '';
-  document.getElementById('fileInputGallery').value = '';
-  document.getElementById('previewRow').style.display = 'none';
-  document.getElementById('captureOptions').style.display = 'grid';
-  document.getElementById('formCard').style.display = 'none';
-}
-
-function setStatus(html){
-  document.getElementById('statusLine').innerHTML = html;
-}
-
-async function extractInvoice(){
-  if(!currentImage) return;
-  const btn = document.getElementById('extractBtn');
-  btn.disabled = true;
-  setStatus('<div class="spinner"></div><span>جارٍ قراءة بيانات الفاتورة...</span>');
-
-  const prompt = `أنت مساعد لاستخراج بيانات فواتير الوقود من صورة فاتورة سعودية.
-اقرأ الصورة المرفقة واستخرج القيم التالية بدقة. إذا كانت قيمة غير واضحة احسبها من القيم الأخرى (الضريبة في السعودية 15%، المبلغ الإجمالي = المبلغ قبل الضريبة × 1.15).
-أعد النتيجة بصيغة JSON فقط بدون أي نص إضافي وبدون علامات markdown، بالمفاتيح التالية بالضبط:
-{
-  "invoice_number": "رقم الفاتورة كنص",
-  "date": "التاريخ بصيغة YYYY-MM-DD",
-  "fuel_type": "بنزين أو ديزل",
-  "price_per_liter": رقم (سعر اللتر شامل الضريبة),
-  "liters": رقم (عدد اللترات),
-  "amount_before_tax": رقم,
-  "tax_amount": رقم,
-  "total_amount": رقم
-}
-إذا تعذرت قراءة حقل معين اجعل قيمته null.`;
-
-  try{
-    const response = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: [
-            {type:"image", source:{type:"base64", media_type: currentImage.mediaType, data: currentImage.base64}},
-            {type:"text", text: prompt}
-          ]
-        }]
-      })
-    });
-    const data = await response.json();
-    const textBlock = (data.content || []).find(b => b.type === 'text');
-    if(!textBlock) throw new Error('لم يتم استلام رد نصي');
-    let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
-    const parsed = JSON.parse(clean);
-    populateForm(parsed);
-    setStatus('<span style="color:#8fdcb8;">تم استخراج البيانات — راجعها ثم احفظ</span>');
-  }catch(err){
-    console.error(err);
-    setStatus('<span style="color:#f0a889;">تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً</span> <button class="btn btn-ghost btn-sm" onclick="extractInvoice()" style="margin-right:6px;">إعادة المحاولة</button>');
-    populateForm({});
-  }finally{
-    btn.disabled = false;
-  }
-}
-
-async function auditInvoice(){
-  if(!currentImage){
-    document.getElementById('auditResult').innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لا توجد صورة</div>صورة الفاتورة غير متاحة للمقارنة معها.</div>';
-    return;
-  }
-  const btn = document.getElementById('auditBtn');
-  const resultBox = document.getElementById('auditResult');
-  btn.disabled = true;
-  const originalLabel = btn.textContent;
-  btn.textContent = 'جارٍ التدقيق...';
-  resultBox.innerHTML = '';
-
-  const formValues = {
-    invoice_number: document.getElementById('f_invoice').value.trim(),
-    date: document.getElementById('f_date').value,
-    fuel_type: currentFuel || '',
-    price_per_liter: document.getElementById('f_price').value,
-    liters: document.getElementById('f_liters').value,
-    amount_before_tax: document.getElementById('f_before_tax').value,
-    tax_amount: document.getElementById('f_tax').value,
-    total_amount: document.getElementById('f_total').value
-  };
-
-  const prompt = `أنت مدقّق فواتير وقود. لديك صورة فاتورة، وبيانات أدخلها موظف الميدان بعد قراءتها. مهمتك مقارنة كل قيمة مُدخلة بما هو مكتوب فعلياً في الصورة.
-
-القيم المُدخلة:
-- رقم الفاتورة: ${formValues.invoice_number || 'فارغ'}
-- التاريخ: ${formValues.date || 'فارغ'}
-- نوع الوقود: ${formValues.fuel_type || 'فارغ'}
-- سعر اللتر (شامل الضريبة): ${formValues.price_per_liter || 'فارغ'}
-- عدد اللترات: ${formValues.liters || 'فارغ'}
-- المبلغ قبل الضريبة: ${formValues.amount_before_tax || 'فارغ'}
-- الضريبة 15%: ${formValues.tax_amount || 'فارغ'}
-- المبلغ الإجمالي: ${formValues.total_amount || 'فارغ'}
-
-قارن كل قيمة بما تراه في الصورة، وتحقق أيضاً أن الحسابات صحيحة (الإجمالي = السعر × اللترات، والضريبة = 15% من المبلغ قبل الضريبة).
-أعد النتيجة بصيغة JSON فقط بدون أي نص إضافي وبدون علامات markdown بهذا الشكل بالضبط:
-{
-  "fields": [
-    {"key":"invoice_number","ok":true,"note":"مطابق"},
-    {"key":"date","ok":true,"note":"مطابق"},
-    {"key":"fuel_type","ok":true,"note":"مطابق"},
-    {"key":"price_per_liter","ok":true,"note":"مطابق"},
-    {"key":"liters","ok":true,"note":"مطابق"},
-    {"key":"amount_before_tax","ok":true,"note":"مطابق"},
-    {"key":"tax_amount","ok":true,"note":"مطابق"},
-    {"key":"total_amount","ok":true,"note":"مطابق"}
-  ]
-}
-اجعل "ok" false فقط عند وجود اختلاف واضح عن الصورة، واكتب في "note" القيمة الصحيحة المقروءة من الصورة باختصار عند وجود اختلاف، أو "مطابق" عند عدم وجود اختلاف.`;
-
-  try{
-    const response = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        messages: [{
-          role: "user",
-          content: [
-            {type:"image", source:{type:"base64", media_type: currentImage.mediaType, data: currentImage.base64}},
-            {type:"text", text: prompt}
-          ]
-        }]
-      })
-    });
-    const data = await response.json();
-    const textBlock = (data.content || []).find(b => b.type === 'text');
-    if(!textBlock) throw new Error('لم يتم استلام رد نصي');
-    let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
-    const parsed = JSON.parse(clean);
-    renderAudit(parsed.fields || []);
-  }catch(err){
-    console.error(err);
-    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ تعذّر التدقيق</div>لم يتمكن الذكاء الاصطناعي من مقارنة البيانات، حاول مرة أخرى. <button class="btn btn-ghost btn-sm" onclick="auditInvoice()" style="margin-top:8px;">إعادة المحاولة</button></div>';
-  }finally{
-    btn.disabled = false;
-    btn.textContent = originalLabel;
-  }
-}
-
-const AUDIT_LABELS = {
-  invoice_number: 'رقم الفاتورة',
-  date: 'التاريخ',
-  fuel_type: 'نوع الوقود',
-  price_per_liter: 'سعر اللتر',
-  liters: 'عدد اللترات',
-  amount_before_tax: 'المبلغ قبل الضريبة',
-  tax_amount: 'الضريبة 15%',
-  total_amount: 'المبلغ الإجمالي'
-};
-
-function renderAudit(fields){
-  const resultBox = document.getElementById('auditResult');
-  if(!fields.length){
-    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لم يتم إرجاع نتيجة تدقيق واضحة</div></div>';
-    return;
-  }
-  const issues = fields.filter(f => !f.ok);
-  const panelClass = issues.length ? 'warn' : 'ok';
-  const title = issues.length
-    ? `⚠️ تحقق من ${issues.length} حقل قبل الحفظ`
-    : '✓ البيانات مطابقة للفاتورة';
-
-  const items = fields.map(f => {
-    const label = AUDIT_LABELS[f.key] || f.key;
-    const tickClass = f.ok ? 'good' : 'bad';
-    const tick = f.ok ? '✓' : '✕';
-    const note = f.ok ? '' : `<span class="fnote"> — ${escapeHtml(f.note || '')}</span>`;
-    return `<li><span class="tick ${tickClass}">${tick}</span><span><span class="fname">${label}</span>${note}</span></li>`;
-  }).join('');
-
-  resultBox.innerHTML = `
-    <div class="audit-panel ${panelClass}">
-      <div class="audit-title">${title}</div>
-      <ul class="audit-list">${items}</ul>
-    </div>
-  `;
-}
-
-function populateForm(p){
-  document.getElementById('f_invoice').value = p.invoice_number || '';
-  document.getElementById('f_date').value = p.date || new Date().toISOString().slice(0,10);
-  document.getElementById('f_price').value = p.price_per_liter ?? '';
-  document.getElementById('f_liters').value = p.liters ?? '';
-  setFuel(p.fuel_type === 'ديزل' ? 'ديزل' : 'بنزين');
-  recalc('price');
-  if(p.total_amount) document.getElementById('f_total').value = Number(p.total_amount).toFixed(2);
-  if(p.amount_before_tax) document.getElementById('f_before_tax').value = Number(p.amount_before_tax).toFixed(2);
-  if(p.tax_amount) document.getElementById('f_tax').value = Number(p.tax_amount).toFixed(2);
-  document.getElementById('formCard').style.display = 'block';
-  document.getElementById('formMsg').innerHTML = '';
-  document.getElementById('auditResult').innerHTML = '';
-}
-
-function setFuel(type){
-  currentFuel = type;
-  document.getElementById('btnBenzin').classList.toggle('active', type==='بنزين');
-  document.getElementById('btnDiesel').classList.toggle('active', type==='ديزل');
-}
-
-function recalc(source){
-  const price = parseFloat(document.getElementById('f_price').value) || 0;
-  const liters = parseFloat(document.getElementById('f_liters').value) || 0;
-  if(source === 'total'){
-    const total = parseFloat(document.getElementById('f_total').value) || 0;
-    const before = total / 1.15;
-    document.getElementById('f_before_tax').value = before.toFixed(2);
-    document.getElementById('f_tax').value = (total - before).toFixed(2);
-    return;
-  }
-  const total = price * liters;
-  const before = total / 1.15;
-  const tax = total - before;
-  document.getElementById('f_before_tax').value = total ? before.toFixed(2) : '';
-  document.getElementById('f_tax').value = total ? tax.toFixed(2) : '';
-  document.getElementById('f_total').value = total ? total.toFixed(2) : '';
-}
-
-function cancelForm(){
-  document.getElementById('formCard').style.display = 'none';
-  resetCapture();
-}
-
-async function saveInvoice(){
-  const plate = document.getElementById('f_plate').value.trim();
-  const record = {
-    plate_number: plate,
-    invoice_number: document.getElementById('f_invoice').value.trim(),
-    date: document.getElementById('f_date').value,
-    fuel_type: currentFuel || 'بنزين',
-    price_per_liter: parseFloat(document.getElementById('f_price').value) || 0,
-    liters: parseFloat(document.getElementById('f_liters').value) || 0,
-    amount_before_tax: parseFloat(document.getElementById('f_before_tax').value) || 0,
-    tax_amount: parseFloat(document.getElementById('f_tax').value) || 0,
-    total_amount: parseFloat(document.getElementById('f_total').value) || 0,
-    saved_at: new Date().toISOString()
-  };
-  if(!record.plate_number){
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء إدخال رقم لوحة السيارة</div>';
-    return;
-  }
-  if(!record.invoice_number || !record.date || !record.liters){
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل</div>';
-    return;
-  }
-  const key = 'invoice:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-  try{
-    const result = await window.storage.set(key, JSON.stringify(record), true);
-    if(!result) throw new Error('فشل الحفظ');
-    document.getElementById('formMsg').innerHTML = '<div class="msg ok">تم حفظ الفاتورة بنجاح ✓</div>';
-    setTimeout(()=>{
-      document.getElementById('formCard').style.display = 'none';
-      resetCapture();
-      document.getElementById('f_plate').value = '';
-      onPlateInput();
-    }, 1200);
-  }catch(err){
-    console.error(err);
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">تعذّر حفظ الفاتورة، حاول مرة أخرى</div>';
-  }
-}
-
-async function loadInvoices(){
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '<tr><td colspan="10" class="empty">جارٍ التحميل...</td></tr>';
-  try{
-    const listResult = await window.storage.list('invoice:', true);
-    const keys = (listResult && listResult.keys) || [];
-    const records = [];
-    for(const k of keys){
-      try{
-        const r = await window.storage.get(k, true);
-        if(r && r.value){
-          const parsed = JSON.parse(r.value);
-          parsed._key = k;
-          records.push(parsed);
-        }
-      }catch(e){ /* skip unreadable key */ }
-    }
-    records.sort((a,b) => (b.date||'').localeCompare(a.date||'') || (b.saved_at||'').localeCompare(a.saved_at||''));
-    allInvoices = records;
-    renderTable();
-  }catch(err){
-    console.error(err);
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">تعذّر تحميل البيانات</td></tr>';
-  }
-}
-
-function renderTable(){
-  const plateFilter = document.getElementById('filterPlate').value.trim().toLowerCase();
-  const fuelFilter = document.getElementById('filterFuel').value;
-  const from = document.getElementById('filterFrom').value;
-  const to = document.getElementById('filterTo').value;
-
-  let rows = allInvoices.filter(r => {
-    if(plateFilter && !(r.plate_number || '').toLowerCase().includes(plateFilter)) return false;
-    if(fuelFilter !== 'all' && r.fuel_type !== fuelFilter) return false;
-    if(from && r.date && r.date < from) return false;
-    if(to && r.date && r.date > to) return false;
-    return true;
-  });
-
-  const tbody = document.getElementById('tableBody');
-  const tfoot = document.getElementById('tableFoot');
-  const emptyEl = document.getElementById('adminEmpty');
-
-  if(rows.length === 0){
-    tbody.innerHTML = '';
-    tfoot.innerHTML = '';
-    emptyEl.style.display = 'block';
-  } else {
-    emptyEl.style.display = 'none';
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${escapeHtml(r.plate_number)}</td>
-        <td>${escapeHtml(r.invoice_number)}</td>
-        <td>${escapeHtml(r.date)}</td>
-        <td><span class="pill ${r.fuel_type==='ديزل'?'diesel':'benzin'}">${escapeHtml(r.fuel_type)}</span></td>
-        <td>${fmt(r.price_per_liter)}</td>
-        <td>${fmt(r.liters)}</td>
-        <td>${fmt(r.amount_before_tax)}</td>
-        <td>${fmt(r.tax_amount)}</td>
-        <td>${fmt(r.total_amount)}</td>
-        <td><button class="row-del" title="حذف" onclick="deleteInvoice('${r._key}')">✕</button></td>
-      </tr>
-    `).join('');
-
-    const sum = (key) => rows.reduce((s,r)=> s + (parseFloat(r[key])||0), 0);
-    tfoot.innerHTML = `
-      <tr>
-        <td colspan="5">الإجمالي (${rows.length} فاتورة)</td>
-        <td>${fmt(sum('liters'))}</td>
-        <td>${fmt(sum('amount_before_tax'))}</td>
-        <td>${fmt(sum('tax_amount'))}</td>
-        <td>${fmt(sum('total_amount'))}</td>
-        <td></td>
-      </tr>
-    `;
-  }
-
-  const benzinRows = rows.filter(r=>r.fuel_type==='بنزين');
-  const dieselRows = rows.filter(r=>r.fuel_type==='ديزل');
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat"><div class="n">${rows.length}</div><div class="l">عدد الفواتير</div></div>
-    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.liters)||0),0))}</div><div class="l">إجمالي اللترات</div></div>
-    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.total_amount)||0),0))}</div><div class="l">إجمالي المبلغ</div></div>
-    <div class="stat"><div class="n">${benzinRows.length} / ${dieselRows.length}</div><div class="l">بنزين / ديزل</div></div>
-  `;
-}
-
-async function deleteInvoice(key){
-  if(!confirm('هل تريد حذف هذه الفاتورة؟')) return;
-  try{
-    await window.storage.delete(key, true);
-    allInvoices = allInvoices.filter(r => r._key !== key);
-    renderTable();
-  }catch(err){
-    console.error(err);
-    alert('تعذّر حذف الفاتورة');
-  }
-}
-
-function exportCsv(){
-  const rows = allInvoices;
-  if(rows.length === 0){ alert('لا توجد بيانات للتصدير'); return; }
-  const headers = ['رقم اللوحة','رقم الفاتورة','التاريخ','النوع','سعر اللتر','اللترات','قبل الضريبة','الضريبة 15%','الإجمالي'];
-  const lines = [headers.join(',')];
-  rows.forEach(r=>{
-    lines.push([r.plate_number, r.invoice_number, r.date, r.fuel_type, r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
-  });
-  const blob = new Blob(["\uFEFF" + lines.join('\n')], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'تقرير_فواتير_الوقود.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function fmt(n){
-  n = parseFloat(n) || 0;
-  return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-function escapeHtml(s){
-  if(s===undefined||s===null) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-setFuel('بنزين');
-onPlateInput();
-updateGates();
-</script>
-</body>
-</html>
+    // دوال الحماية وفتح الصفحات
+    function unlockField() {
+        if(document.getElementById('field-pin').value === FIELD_PIN) {
