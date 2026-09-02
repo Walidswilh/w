@@ -133,6 +133,18 @@
   .msg.ok{background:rgba(74,156,124,0.16);color:#8fdcb8;border:1px solid rgba(74,156,124,0.35);}
   .msg.err{background:rgba(217,112,79,0.14);color:#f0a889;border:1px solid rgba(217,112,79,0.35);}
 
+  .audit-panel{margin-top:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);}
+  .audit-panel.ok{border-color:rgba(74,156,124,0.4);}
+  .audit-panel.warn{border-color:rgba(232,161,58,0.45);}
+  .audit-panel .audit-title{font-family:'Cairo',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .audit-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .audit-list li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;}
+  .audit-list .tick{flex-shrink:0;font-size:13px;}
+  .audit-list .tick.good{color:var(--diesel);}
+  .audit-list .tick.bad{color:var(--amber);}
+  .audit-list .fname{font-weight:700;}
+  .audit-list .fnote{color:var(--paper-dim);}
+
   /* --- Admin --- */
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
   .toolbar select, .toolbar input{
@@ -294,6 +306,11 @@
       </div>
 
       <div class="form-actions">
+        <button class="btn btn-diesel" id="auditBtn" onclick="auditInvoice()">🔍 تدقيق البيانات مع الصورة</button>
+      </div>
+      <div id="auditResult"></div>
+
+      <div class="form-actions">
         <button class="btn btn-primary" onclick="saveInvoice()">حفظ الفاتورة</button>
         <button class="btn btn-ghost" onclick="cancelForm()">إلغاء</button>
       </div>
@@ -364,8 +381,8 @@
 
 <script>
 // ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
-const FIELD_PASSCODE = 'ww11';
-const ADMIN_PASSCODE = 'ww99';
+const FIELD_PASSCODE = '1111';
+const ADMIN_PASSCODE = '9999';
 // --------------------------------------------
 
 let currentImage = null; // {base64, mediaType}
@@ -506,11 +523,132 @@ async function extractInvoice(){
     setStatus('<span style="color:#8fdcb8;">تم استخراج البيانات — راجعها ثم احفظ</span>');
   }catch(err){
     console.error(err);
-    setStatus('<span style="color:#f0a889;">تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً</span>');
+    setStatus('<span style="color:#f0a889;">تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً</span> <button class="btn btn-ghost btn-sm" onclick="extractInvoice()" style="margin-right:6px;">إعادة المحاولة</button>');
     populateForm({});
   }finally{
     btn.disabled = false;
   }
+}
+
+async function auditInvoice(){
+  if(!currentImage){
+    document.getElementById('auditResult').innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لا توجد صورة</div>صورة الفاتورة غير متاحة للمقارنة معها.</div>';
+    return;
+  }
+  const btn = document.getElementById('auditBtn');
+  const resultBox = document.getElementById('auditResult');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'جارٍ التدقيق...';
+  resultBox.innerHTML = '';
+
+  const formValues = {
+    invoice_number: document.getElementById('f_invoice').value.trim(),
+    date: document.getElementById('f_date').value,
+    fuel_type: currentFuel || '',
+    price_per_liter: document.getElementById('f_price').value,
+    liters: document.getElementById('f_liters').value,
+    amount_before_tax: document.getElementById('f_before_tax').value,
+    tax_amount: document.getElementById('f_tax').value,
+    total_amount: document.getElementById('f_total').value
+  };
+
+  const prompt = `أنت مدقّق فواتير وقود. لديك صورة فاتورة، وبيانات أدخلها موظف الميدان بعد قراءتها. مهمتك مقارنة كل قيمة مُدخلة بما هو مكتوب فعلياً في الصورة.
+
+القيم المُدخلة:
+- رقم الفاتورة: ${formValues.invoice_number || 'فارغ'}
+- التاريخ: ${formValues.date || 'فارغ'}
+- نوع الوقود: ${formValues.fuel_type || 'فارغ'}
+- سعر اللتر (شامل الضريبة): ${formValues.price_per_liter || 'فارغ'}
+- عدد اللترات: ${formValues.liters || 'فارغ'}
+- المبلغ قبل الضريبة: ${formValues.amount_before_tax || 'فارغ'}
+- الضريبة 15%: ${formValues.tax_amount || 'فارغ'}
+- المبلغ الإجمالي: ${formValues.total_amount || 'فارغ'}
+
+قارن كل قيمة بما تراه في الصورة، وتحقق أيضاً أن الحسابات صحيحة (الإجمالي = السعر × اللترات، والضريبة = 15% من المبلغ قبل الضريبة).
+أعد النتيجة بصيغة JSON فقط بدون أي نص إضافي وبدون علامات markdown بهذا الشكل بالضبط:
+{
+  "fields": [
+    {"key":"invoice_number","ok":true,"note":"مطابق"},
+    {"key":"date","ok":true,"note":"مطابق"},
+    {"key":"fuel_type","ok":true,"note":"مطابق"},
+    {"key":"price_per_liter","ok":true,"note":"مطابق"},
+    {"key":"liters","ok":true,"note":"مطابق"},
+    {"key":"amount_before_tax","ok":true,"note":"مطابق"},
+    {"key":"tax_amount","ok":true,"note":"مطابق"},
+    {"key":"total_amount","ok":true,"note":"مطابق"}
+  ]
+}
+اجعل "ok" false فقط عند وجود اختلاف واضح عن الصورة، واكتب في "note" القيمة الصحيحة المقروءة من الصورة باختصار عند وجود اختلاف، أو "مطابق" عند عدم وجود اختلاف.`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        messages: [{
+          role: "user",
+          content: [
+            {type:"image", source:{type:"base64", media_type: currentImage.mediaType, data: currentImage.base64}},
+            {type:"text", text: prompt}
+          ]
+        }]
+      })
+    });
+    const data = await response.json();
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    if(!textBlock) throw new Error('لم يتم استلام رد نصي');
+    let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    const parsed = JSON.parse(clean);
+    renderAudit(parsed.fields || []);
+  }catch(err){
+    console.error(err);
+    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ تعذّر التدقيق</div>لم يتمكن الذكاء الاصطناعي من مقارنة البيانات، حاول مرة أخرى. <button class="btn btn-ghost btn-sm" onclick="auditInvoice()" style="margin-top:8px;">إعادة المحاولة</button></div>';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+const AUDIT_LABELS = {
+  invoice_number: 'رقم الفاتورة',
+  date: 'التاريخ',
+  fuel_type: 'نوع الوقود',
+  price_per_liter: 'سعر اللتر',
+  liters: 'عدد اللترات',
+  amount_before_tax: 'المبلغ قبل الضريبة',
+  tax_amount: 'الضريبة 15%',
+  total_amount: 'المبلغ الإجمالي'
+};
+
+function renderAudit(fields){
+  const resultBox = document.getElementById('auditResult');
+  if(!fields.length){
+    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لم يتم إرجاع نتيجة تدقيق واضحة</div></div>';
+    return;
+  }
+  const issues = fields.filter(f => !f.ok);
+  const panelClass = issues.length ? 'warn' : 'ok';
+  const title = issues.length
+    ? `⚠️ تحقق من ${issues.length} حقل قبل الحفظ`
+    : '✓ البيانات مطابقة للفاتورة';
+
+  const items = fields.map(f => {
+    const label = AUDIT_LABELS[f.key] || f.key;
+    const tickClass = f.ok ? 'good' : 'bad';
+    const tick = f.ok ? '✓' : '✕';
+    const note = f.ok ? '' : `<span class="fnote"> — ${escapeHtml(f.note || '')}</span>`;
+    return `<li><span class="tick ${tickClass}">${tick}</span><span><span class="fname">${label}</span>${note}</span></li>`;
+  }).join('');
+
+  resultBox.innerHTML = `
+    <div class="audit-panel ${panelClass}">
+      <div class="audit-title">${title}</div>
+      <ul class="audit-list">${items}</ul>
+    </div>
+  `;
 }
 
 function populateForm(p){
@@ -525,6 +663,7 @@ function populateForm(p){
   if(p.tax_amount) document.getElementById('f_tax').value = Number(p.tax_amount).toFixed(2);
   document.getElementById('formCard').style.display = 'block';
   document.getElementById('formMsg').innerHTML = '';
+  document.getElementById('auditResult').innerHTML = '';
 }
 
 function setFuel(type){
