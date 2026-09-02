@@ -19,7 +19,7 @@
 
 // غيّر هذا لاحقاً إلى دومين موقعك على GitHub Pages لتقييد الوصول، مثال:
 // const ALLOWED_ORIGIN = "https://username.github.io";
-const ALLOWED_ORIGIN = "https://walidswilh.github.io/w/";
+const ALLOWED_ORIGIN = "*";
 
 export default {
   async fetch(request, env) {
