@@ -80,6 +80,8 @@
     background:rgba(244,239,228,0.02);
   }
   .capture-zone:hover{border-color:var(--amber);background:rgba(232,161,58,0.06);}
+  .capture-zone.locked{opacity:.45;cursor:not-allowed;}
+  .capture-zone.locked:hover{border-color:var(--paper-dim);background:rgba(244,239,228,0.02);}
   .capture-zone .icon{font-size:34px;margin-bottom:8px;}
   .capture-zone .label{font-weight:700;font-family:'Cairo',sans-serif;}
   .capture-zone .hint{font-size:12.5px;color:var(--paper-dim);margin-top:4px;}
@@ -219,6 +221,15 @@
 
     <div id="fieldContent" style="display:none;">
     <div class="card">
+      <h2>رقم لوحة السيارة</h2>
+      <p class="sub">أدخل رقم اللوحة أولاً قبل تصوير الفاتورة — سيتم ربط الفاتورة به.</p>
+      <div class="field">
+        <label>رقم اللوحة</label>
+        <input id="f_plate" type="text" placeholder="مثال: أ ب ج 1234" oninput="onPlateInput()">
+      </div>
+    </div>
+
+    <div class="card">
       <h2>صورة الفاتورة</h2>
       <p class="sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
 
@@ -311,6 +322,7 @@
       <div class="stats-row" id="statsRow"></div>
 
       <div class="toolbar">
+        <input type="text" id="filterPlate" placeholder="بحث برقم اللوحة" oninput="renderTable()">
         <select id="filterFuel" onchange="renderTable()">
           <option value="all">كل الأنواع</option>
           <option value="بنزين">بنزين فقط</option>
@@ -327,6 +339,7 @@
         <table>
           <thead>
             <tr>
+              <th>رقم اللوحة</th>
               <th>رقم الفاتورة</th>
               <th>التاريخ</th>
               <th>النوع</th>
@@ -401,6 +414,21 @@ function tryUnlockAdmin(){
     document.getElementById('adminPass').value = '';
   }
 }
+
+function onPlateInput(){
+  const plate = document.getElementById('f_plate').value.trim();
+  const zone = document.getElementById('captureZone');
+  zone.classList.toggle('locked', plate.length === 0);
+}
+
+document.getElementById('captureZone').addEventListener('click', function(e){
+  const plate = document.getElementById('f_plate').value.trim();
+  if(!plate){
+    e.preventDefault();
+    document.getElementById('f_plate').focus();
+    setStatus('<span style="color:#f0a889;">أدخل رقم لوحة السيارة أولاً</span>');
+  }
+});
 
 document.getElementById('fileInput').addEventListener('change', function(e){
   const file = e.target.files[0];
@@ -529,7 +557,9 @@ function cancelForm(){
 }
 
 async function saveInvoice(){
+  const plate = document.getElementById('f_plate').value.trim();
   const record = {
+    plate_number: plate,
     invoice_number: document.getElementById('f_invoice').value.trim(),
     date: document.getElementById('f_date').value,
     fuel_type: currentFuel || 'بنزين',
@@ -540,6 +570,10 @@ async function saveInvoice(){
     total_amount: parseFloat(document.getElementById('f_total').value) || 0,
     saved_at: new Date().toISOString()
   };
+  if(!record.plate_number){
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء إدخال رقم لوحة السيارة</div>';
+    return;
+  }
   if(!record.invoice_number || !record.date || !record.liters){
     document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل</div>';
     return;
@@ -552,6 +586,8 @@ async function saveInvoice(){
     setTimeout(()=>{
       document.getElementById('formCard').style.display = 'none';
       resetCapture();
+      document.getElementById('f_plate').value = '';
+      onPlateInput();
     }, 1200);
   }catch(err){
     console.error(err);
@@ -561,7 +597,7 @@ async function saveInvoice(){
 
 async function loadInvoices(){
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '<tr><td colspan="9" class="empty">جارٍ التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10" class="empty">جارٍ التحميل...</td></tr>';
   try{
     const listResult = await window.storage.list('invoice:', true);
     const keys = (listResult && listResult.keys) || [];
@@ -581,16 +617,18 @@ async function loadInvoices(){
     renderTable();
   }catch(err){
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="9" class="empty">تعذّر تحميل البيانات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">تعذّر تحميل البيانات</td></tr>';
   }
 }
 
 function renderTable(){
+  const plateFilter = document.getElementById('filterPlate').value.trim().toLowerCase();
   const fuelFilter = document.getElementById('filterFuel').value;
   const from = document.getElementById('filterFrom').value;
   const to = document.getElementById('filterTo').value;
 
   let rows = allInvoices.filter(r => {
+    if(plateFilter && !(r.plate_number || '').toLowerCase().includes(plateFilter)) return false;
     if(fuelFilter !== 'all' && r.fuel_type !== fuelFilter) return false;
     if(from && r.date && r.date < from) return false;
     if(to && r.date && r.date > to) return false;
@@ -609,6 +647,7 @@ function renderTable(){
     emptyEl.style.display = 'none';
     tbody.innerHTML = rows.map(r => `
       <tr>
+        <td>${escapeHtml(r.plate_number)}</td>
         <td>${escapeHtml(r.invoice_number)}</td>
         <td>${escapeHtml(r.date)}</td>
         <td><span class="pill ${r.fuel_type==='ديزل'?'diesel':'benzin'}">${escapeHtml(r.fuel_type)}</span></td>
@@ -624,7 +663,7 @@ function renderTable(){
     const sum = (key) => rows.reduce((s,r)=> s + (parseFloat(r[key])||0), 0);
     tfoot.innerHTML = `
       <tr>
-        <td colspan="4">الإجمالي (${rows.length} فاتورة)</td>
+        <td colspan="5">الإجمالي (${rows.length} فاتورة)</td>
         <td>${fmt(sum('liters'))}</td>
         <td>${fmt(sum('amount_before_tax'))}</td>
         <td>${fmt(sum('tax_amount'))}</td>
@@ -659,10 +698,10 @@ async function deleteInvoice(key){
 function exportCsv(){
   const rows = allInvoices;
   if(rows.length === 0){ alert('لا توجد بيانات للتصدير'); return; }
-  const headers = ['رقم الفاتورة','التاريخ','النوع','سعر اللتر','اللترات','قبل الضريبة','الضريبة 15%','الإجمالي'];
+  const headers = ['رقم اللوحة','رقم الفاتورة','التاريخ','النوع','سعر اللتر','اللترات','قبل الضريبة','الضريبة 15%','الإجمالي'];
   const lines = [headers.join(',')];
   rows.forEach(r=>{
-    lines.push([r.invoice_number, r.date, r.fuel_type, r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
+    lines.push([r.plate_number, r.invoice_number, r.date, r.fuel_type, r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
   });
   const blob = new Blob(["\uFEFF" + lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -682,6 +721,7 @@ function escapeHtml(s){
 }
 
 setFuel('بنزين');
+onPlateInput();
 updateGates();
 </script>
 </body>
