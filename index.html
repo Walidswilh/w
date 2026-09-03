@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سجل فواتير الوقود</title>
+<title data-i18n="page_title">سجل فواتير الوقود</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -210,14 +210,17 @@
     <div class="brand">
       <div class="mark">و</div>
       <div>
-        <h1>سجل فواتير الوقود</h1>
-        <p>التقاط الفاتورة ميدانياً وتسجيلها تلقائياً بالذكاء الاصطناعي</p>
+        <h1 data-i18n="brand_title">سجل فواتير الوقود</h1>
+        <p data-i18n="brand_sub">التقاط الفاتورة ميدانياً وتسجيلها تلقائياً بالذكاء الاصطناعي</p>
       </div>
     </div>
-    <nav class="tabs">
-      <button id="tabFieldBtn" class="active" onclick="switchTab('field')">التقاط فاتورة</button>
-      <button id="tabAdminBtn" onclick="switchTab('admin')">تقرير الإدارة</button>
-    </nav>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <nav class="tabs">
+        <button id="tabFieldBtn" class="active" data-i18n="tab_field" onclick="switchTab('field')">التقاط فاتورة</button>
+        <button id="tabAdminBtn" data-i18n="tab_admin" onclick="switchTab('admin')">تقرير الإدارة</button>
+      </nav>
+      <button class="btn btn-ghost btn-sm" id="langToggleBtn" onclick="toggleLanguage()">EN</button>
+    </div>
   </header>
 
   <!-- FIELD VIEW -->
@@ -225,38 +228,38 @@
 
     <div class="lock-screen" id="fieldLock">
       <div class="icon">🔒</div>
-      <h2>صفحة الميدان محمية</h2>
-      <p>أدخل الرمز السري الخاص بالميدان للمتابعة</p>
+      <h2 data-i18n="field_lock_title">صفحة الميدان محمية</h2>
+      <p data-i18n="field_lock_sub">أدخل الرمز السري الخاص بالميدان للمتابعة</p>
       <input type="password" id="fieldPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockField()">
-      <button class="btn btn-primary" onclick="tryUnlockField()">دخول</button>
+      <button class="btn btn-primary" data-i18n="unlock_btn" onclick="tryUnlockField()">دخول</button>
       <div class="lock-err" id="fieldLockErr"></div>
     </div>
 
     <div id="fieldContent" style="display:none;">
     <div class="card">
-      <h2>رقم لوحة السيارة</h2>
-      <p class="sub">أدخل رقم اللوحة أولاً قبل تصوير الفاتورة — سيتم ربط الفاتورة به.</p>
+      <h2 data-i18n="plate_card_title">رقم لوحة السيارة</h2>
+      <p class="sub" data-i18n="plate_card_sub">أدخل رقم اللوحة أولاً قبل تصوير الفاتورة — سيتم ربط الفاتورة به.</p>
       <div class="field">
-        <label>رقم اللوحة (أرقام فقط، 4 أرقام كحد أقصى)</label>
-        <input id="f_plate" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="مثال: 1234" oninput="onPlateInput()" onkeydown="return guardPlateKey(event)">
+        <label data-i18n="plate_label">رقم اللوحة (أرقام فقط، 4 أرقام كحد أقصى)</label>
+        <input id="f_plate" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" data-i18n-placeholder="plate_placeholder" placeholder="مثال: 1234" oninput="onPlateInput()" onkeydown="return guardPlateKey(event)">
       </div>
     </div>
 
     <div class="card">
-      <h2>صورة الفاتورة</h2>
-      <p class="sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
+      <h2 data-i18n="image_card_title">صورة الفاتورة</h2>
+      <p class="sub" data-i18n="image_card_sub">التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.</p>
 
       <div class="capture-options" id="captureOptions">
         <label class="capture-zone" id="captureZone">
           <div class="icon">📷</div>
-          <div class="label">التقاط بالكاميرا</div>
-          <div class="hint">فتح الكاميرا مباشرة</div>
+          <div class="label" data-i18n="capture_camera_label">التقاط بالكاميرا</div>
+          <div class="hint" data-i18n="capture_camera_hint">فتح الكاميرا مباشرة</div>
           <input type="file" id="fileInputCamera" accept="image/*" capture="environment">
         </label>
         <label class="capture-zone" id="galleryZone">
           <div class="icon">🖼️</div>
-          <div class="label">اختيار من ألبوم الصور</div>
-          <div class="hint">اختيار صورة محفوظة مسبقاً</div>
+          <div class="label" data-i18n="capture_gallery_label">اختيار من ألبوم الصور</div>
+          <div class="hint" data-i18n="capture_gallery_hint">اختيار صورة محفوظة مسبقاً</div>
           <input type="file" id="fileInputGallery" accept="image/*">
         </label>
       </div>
@@ -264,64 +267,64 @@
       <div class="preview-row" id="previewRow" style="display:none;">
         <img id="previewImg" src="">
         <div class="preview-actions">
-          <button class="btn btn-primary" id="extractBtn" onclick="extractInvoice()">استخراج البيانات بالذكاء الاصطناعي</button>
-          <button class="btn btn-ghost" onclick="resetCapture()">إزالة الصورة واختيار أخرى</button>
+          <button class="btn btn-primary" id="extractBtn" data-i18n="extract_btn" onclick="extractInvoice()">استخراج البيانات بالذكاء الاصطناعي</button>
+          <button class="btn btn-ghost" data-i18n="remove_image_btn" onclick="resetCapture()">إزالة الصورة واختيار أخرى</button>
           <div class="status-line" id="statusLine"></div>
         </div>
       </div>
     </div>
 
     <div class="card" id="formCard" style="display:none;">
-      <h2>بيانات الفاتورة</h2>
-      <p class="sub">راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.</p>
+      <h2 data-i18n="form_card_title">بيانات الفاتورة</h2>
+      <p class="sub" data-i18n="form_card_sub">راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.</p>
 
       <div class="field">
-        <label>نوع الوقود</label>
+        <label data-i18n="fuel_type_label">نوع الوقود</label>
         <div class="fuel-toggle">
-          <button type="button" class="sel-benzin" id="btnBenzin" onclick="setFuel('بنزين')">بنزين</button>
-          <button type="button" class="sel-diesel" id="btnDiesel" onclick="setFuel('ديزل')">ديزل</button>
+          <button type="button" class="sel-benzin" id="btnBenzin" data-i18n="fuel_benzin" onclick="setFuel('بنزين')">بنزين</button>
+          <button type="button" class="sel-diesel" id="btnDiesel" data-i18n="fuel_diesel" onclick="setFuel('ديزل')">ديزل</button>
         </div>
       </div>
 
       <div class="form-grid">
         <div class="field">
-          <label>رقم الفاتورة</label>
-          <input id="f_invoice" type="text" placeholder="مثال: 10245">
+          <label data-i18n="invoice_no_label">رقم الفاتورة</label>
+          <input id="f_invoice" type="text" data-i18n-placeholder="invoice_no_placeholder" placeholder="مثال: 10245">
         </div>
         <div class="field">
-          <label>التاريخ</label>
+          <label data-i18n="date_label">التاريخ</label>
           <input id="f_date" type="date">
         </div>
         <div class="field">
-          <label>سعر اللتر (شامل الضريبة)</label>
+          <label data-i18n="price_label">سعر اللتر (شامل الضريبة)</label>
           <input id="f_price" type="number" step="0.001" oninput="recalc('price')">
         </div>
         <div class="field">
-          <label>عدد اللترات</label>
+          <label data-i18n="liters_label">عدد اللترات</label>
           <input id="f_liters" type="number" step="0.01" oninput="recalc('liters')">
         </div>
         <div class="field readout">
-          <label>المبلغ قبل الضريبة</label>
+          <label data-i18n="before_tax_label">المبلغ قبل الضريبة</label>
           <input id="f_before_tax" type="number" step="0.01" readonly>
         </div>
         <div class="field readout">
-          <label>الضريبة (15%)</label>
+          <label data-i18n="tax_label">الضريبة (15%)</label>
           <input id="f_tax" type="number" step="0.01" readonly>
         </div>
         <div class="field full readout">
-          <label>المبلغ الإجمالي</label>
+          <label data-i18n="total_label">المبلغ الإجمالي</label>
           <input id="f_total" type="number" step="0.01" oninput="recalc('total')">
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-diesel" id="auditBtn" onclick="auditInvoice()">🔍 تدقيق البيانات مع الصورة</button>
+        <button class="btn btn-diesel" id="auditBtn" data-i18n="audit_btn" onclick="auditInvoice()">🔍 تدقيق البيانات مع الصورة</button>
       </div>
       <div id="auditResult"></div>
 
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveInvoice()">حفظ الفاتورة</button>
-        <button class="btn btn-ghost" onclick="cancelForm()">إلغاء</button>
+        <button class="btn btn-primary" data-i18n="save_btn" onclick="saveInvoice()">حفظ الفاتورة</button>
+        <button class="btn btn-ghost" data-i18n="cancel_btn" onclick="cancelForm()">إلغاء</button>
       </div>
       <div id="formMsg"></div>
     </div>
@@ -333,47 +336,48 @@
 
     <div class="lock-screen" id="adminLock">
       <div class="icon">🔒</div>
-      <h2>صفحة الإدارة محمية</h2>
-      <p>أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
+      <h2 data-i18n="admin_lock_title">صفحة الإدارة محمية</h2>
+      <p data-i18n="admin_lock_sub">أدخل الرمز السري الخاص بالإدارة للمتابعة</p>
       <input type="password" id="adminPass" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter') tryUnlockAdmin()">
-      <button class="btn btn-primary" onclick="tryUnlockAdmin()">دخول</button>
+      <button class="btn btn-primary" data-i18n="unlock_btn" onclick="tryUnlockAdmin()">دخول</button>
       <div class="lock-err" id="adminLockErr"></div>
     </div>
 
     <div id="adminContent" style="display:none;">
     <div class="card">
-      <h2>تقرير الفواتير</h2>
-      <p class="sub">جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.</p>
+      <h2 data-i18n="admin_report_title">تقرير الفواتير</h2>
+      <p class="sub" data-i18n="admin_report_sub">جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.</p>
 
       <div class="stats-row" id="statsRow"></div>
 
       <div class="toolbar">
-        <input type="text" id="filterPlate" placeholder="بحث برقم اللوحة" oninput="renderTable()">
+        <input type="text" id="filterPlate" data-i18n-placeholder="search_plate_placeholder" placeholder="بحث برقم اللوحة" oninput="renderTable()">
         <select id="filterFuel" onchange="renderTable()">
-          <option value="all">كل الأنواع</option>
-          <option value="بنزين">بنزين فقط</option>
-          <option value="ديزل">ديزل فقط</option>
+          <option value="all" data-i18n="filter_all_types">كل الأنواع</option>
+          <option value="بنزين" data-i18n="filter_benzin_only">بنزين فقط</option>
+          <option value="ديزل" data-i18n="filter_diesel_only">ديزل فقط</option>
         </select>
         <input type="date" id="filterFrom" onchange="renderTable()">
-        <span style="color:var(--paper-dim);font-size:13px;">إلى</span>
+        <span style="color:var(--paper-dim);font-size:13px;" data-i18n="filter_to">إلى</span>
         <input type="date" id="filterTo" onchange="renderTable()">
-        <button class="btn btn-ghost btn-sm" onclick="loadInvoices()">تحديث</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportCsv()">تصدير CSV</button>
+        <button class="btn btn-ghost btn-sm" data-i18n="refresh_btn" onclick="loadInvoices()">تحديث</button>
+        <button class="btn btn-ghost btn-sm" data-i18n="export_csv_btn" onclick="exportCsv()">تصدير CSV</button>
+        <button class="btn btn-ghost btn-sm" id="exportExcelBtn" data-i18n="export_excel_btn" onclick="exportExcel()">تصدير Excel (مع الصور)</button>
       </div>
 
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>رقم اللوحة</th>
-              <th>رقم الفاتورة</th>
-              <th>التاريخ</th>
-              <th>النوع</th>
-              <th>سعر اللتر</th>
-              <th>اللترات</th>
-              <th>قبل الضريبة</th>
-              <th>الضريبة 15%</th>
-              <th>الإجمالي</th>
+              <th data-i18n="col_plate">رقم اللوحة</th>
+              <th data-i18n="col_invoice_no">رقم الفاتورة</th>
+              <th data-i18n="col_date">التاريخ</th>
+              <th data-i18n="col_type">النوع</th>
+              <th data-i18n="col_price">سعر اللتر</th>
+              <th data-i18n="col_liters">اللترات</th>
+              <th data-i18n="col_before_tax">قبل الضريبة</th>
+              <th data-i18n="col_tax">الضريبة 15%</th>
+              <th data-i18n="col_total">الإجمالي</th>
               <th></th>
             </tr>
           </thead>
@@ -381,13 +385,15 @@
           <tfoot id="tableFoot"></tfoot>
         </table>
       </div>
-      <div id="adminEmpty" class="empty" style="display:none;">لا توجد فواتير مسجّلة بعد</div>
+      <div id="adminEmpty" class="empty" style="display:none;" data-i18n="no_invoices_yet">لا توجد فواتير مسجّلة بعد</div>
     </div>
     </div><!-- /adminContent -->
   </div>
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 // ---- رموز الدخول: غيّرها هنا حسب الحاجة ----
 const FIELD_PASSCODE = '1111';
@@ -416,6 +422,258 @@ let currentFuel = null;
 let allInvoices = [];
 let fieldUnlocked = false;
 let adminUnlocked = false;
+let currentLang = localStorage.getItem('appLang') || 'ar';
+
+const TRANSLATIONS = {
+  ar: {
+    page_title: 'سجل فواتير الوقود',
+    brand_title: 'سجل فواتير الوقود',
+    brand_sub: 'التقاط الفاتورة ميدانياً وتسجيلها تلقائياً بالذكاء الاصطناعي',
+    tab_field: 'التقاط فاتورة',
+    tab_admin: 'تقرير الإدارة',
+    lang_toggle: 'EN',
+    field_lock_title: 'صفحة الميدان محمية',
+    field_lock_sub: 'أدخل الرمز السري الخاص بالميدان للمتابعة',
+    unlock_btn: 'دخول',
+    wrong_code: 'رمز غير صحيح، حاول مرة أخرى',
+    plate_card_title: 'رقم لوحة السيارة',
+    plate_card_sub: 'أدخل رقم اللوحة أولاً قبل تصوير الفاتورة — سيتم ربط الفاتورة به.',
+    plate_label: 'رقم اللوحة (أرقام فقط، 4 أرقام كحد أقصى)',
+    plate_placeholder: 'مثال: 1234',
+    image_card_title: 'صورة الفاتورة',
+    image_card_sub: 'التقط صورة واضحة للفاتورة، ثم دع الذكاء الاصطناعي يقرأ بياناتها.',
+    capture_camera_label: 'التقاط بالكاميرا',
+    capture_camera_hint: 'فتح الكاميرا مباشرة',
+    capture_gallery_label: 'اختيار من ألبوم الصور',
+    capture_gallery_hint: 'اختيار صورة محفوظة مسبقاً',
+    extract_btn: 'استخراج البيانات بالذكاء الاصطناعي',
+    remove_image_btn: 'إزالة الصورة واختيار أخرى',
+    plate_required_status: 'أدخل رقم لوحة السيارة أولاً',
+    extracting_status: 'جارٍ قراءة بيانات الفاتورة...',
+    extract_success_status: 'تم استخراج البيانات — راجعها ثم احفظ',
+    extract_fail_status: 'تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً',
+    retry_btn: 'إعادة المحاولة',
+    form_card_title: 'بيانات الفاتورة',
+    form_card_sub: 'راجع القيم المستخرجة وعدّلها عند الحاجة قبل الحفظ.',
+    fuel_type_label: 'نوع الوقود',
+    fuel_benzin: 'بنزين',
+    fuel_diesel: 'ديزل',
+    invoice_no_label: 'رقم الفاتورة',
+    invoice_no_placeholder: 'مثال: 10245',
+    date_label: 'التاريخ',
+    price_label: 'سعر اللتر (شامل الضريبة)',
+    liters_label: 'عدد اللترات',
+    before_tax_label: 'المبلغ قبل الضريبة',
+    tax_label: 'الضريبة (15%)',
+    total_label: 'المبلغ الإجمالي',
+    audit_btn: '🔍 تدقيق البيانات مع الصورة',
+    auditing_btn: 'جارٍ التدقيق...',
+    save_btn: 'حفظ الفاتورة',
+    cancel_btn: 'إلغاء',
+    plate_missing_msg: 'الرجاء إدخال رقم لوحة السيارة',
+    fields_missing_msg: 'الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل',
+    save_success_msg: 'تم حفظ الفاتورة بنجاح ✓',
+    save_fail_msg: 'تعذّر حفظ الفاتورة، حاول مرة أخرى',
+    admin_lock_title: 'صفحة الإدارة محمية',
+    admin_lock_sub: 'أدخل الرمز السري الخاص بالإدارة للمتابعة',
+    admin_report_title: 'تقرير الفواتير',
+    admin_report_sub: 'جميع الفواتير المسجّلة من الميدان — البيانات مشتركة بين جميع المستخدمين.',
+    search_plate_placeholder: 'بحث برقم اللوحة',
+    filter_all_types: 'كل الأنواع',
+    filter_benzin_only: 'بنزين فقط',
+    filter_diesel_only: 'ديزل فقط',
+    filter_to: 'إلى',
+    refresh_btn: 'تحديث',
+    export_csv_btn: 'تصدير CSV',
+    export_excel_btn: 'تصدير Excel (مع الصور)',
+    col_plate: 'رقم اللوحة',
+    col_invoice_no: 'رقم الفاتورة',
+    col_date: 'التاريخ',
+    col_type: 'النوع',
+    col_price: 'سعر اللتر',
+    col_liters: 'اللترات',
+    col_before_tax: 'قبل الضريبة',
+    col_tax: 'الضريبة 15%',
+    col_total: 'الإجمالي',
+    col_image_file: 'اسم ملف الصورة',
+    no_invoices_yet: 'لا توجد فواتير مسجّلة بعد',
+    loading: 'جارٍ التحميل...',
+    load_fail: 'تعذّر تحميل البيانات',
+    delete_confirm: 'هل تريد حذف هذه الفاتورة؟',
+    delete_fail: 'تعذّر حذف الفاتورة',
+    delete_title: 'حذف',
+    total_row_label: 'الإجمالي',
+    invoice_word: 'فاتورة',
+    stat_count: 'عدد الفواتير',
+    stat_liters: 'إجمالي اللترات',
+    stat_amount: 'إجمالي المبلغ',
+    stat_types: 'بنزين / ديزل',
+    no_data_to_export: 'لا توجد بيانات للتصدير',
+    export_failed: 'تعذّر تصدير الملف، حاول مرة أخرى',
+    sheet_name: 'الفواتير',
+    no_image: 'لا توجد صورة',
+    exporting_progress: 'جارٍ تجهيز الصور ({n}/{total})...',
+    preparing_download: 'جارٍ تجهيز ملف التحميل...',
+    no_image_status: 'لا توجد صورة',
+    no_image_for_audit: 'صورة الفاتورة غير متاحة للمقارنة معها.',
+    no_image_title: '⚠️ لا توجد صورة',
+    audit_fail_title: '⚠️ تعذّر التدقيق',
+    audit_fail_body: 'لم يتمكن الذكاء الاصطناعي من مقارنة البيانات، حاول مرة أخرى.',
+    audit_no_result: '⚠️ لم يتم إرجاع نتيجة تدقيق واضحة',
+    audit_ok_title: '✓ البيانات مطابقة للفاتورة',
+    audit_issues_title_1: '⚠️ تحقق من ',
+    audit_issues_title_2: ' حقل قبل الحفظ',
+    audit_field_invoice_number: 'رقم الفاتورة',
+    audit_field_date: 'التاريخ',
+    audit_field_fuel_type: 'نوع الوقود',
+    audit_field_price_per_liter: 'سعر اللتر',
+    audit_field_liters: 'عدد اللترات',
+    audit_field_amount_before_tax: 'المبلغ قبل الضريبة',
+    audit_field_tax_amount: 'الضريبة 15%',
+    audit_field_total_amount: 'المبلغ الإجمالي',
+    ok_note: 'مطابق'
+  },
+  en: {
+    page_title: 'Fuel Invoice Log',
+    brand_title: 'Fuel Invoice Log',
+    brand_sub: 'Capture invoices in the field and log them automatically with AI',
+    tab_field: 'Capture Invoice',
+    tab_admin: 'Admin Report',
+    lang_toggle: 'AR',
+    field_lock_title: 'Field page is protected',
+    field_lock_sub: 'Enter the field passcode to continue',
+    unlock_btn: 'Enter',
+    wrong_code: 'Incorrect code, try again',
+    plate_card_title: 'Vehicle Plate Number',
+    plate_card_sub: 'Enter the plate number first before photographing the invoice — it will be linked to it.',
+    plate_label: 'Plate number (digits only, max 4)',
+    plate_placeholder: 'e.g. 1234',
+    image_card_title: 'Invoice Image',
+    image_card_sub: 'Take a clear photo of the invoice, then let AI read its data.',
+    capture_camera_label: 'Capture with Camera',
+    capture_camera_hint: 'Open camera directly',
+    capture_gallery_label: 'Choose from Gallery',
+    capture_gallery_hint: 'Pick a previously saved photo',
+    extract_btn: 'Extract Data with AI',
+    remove_image_btn: 'Remove image and choose another',
+    plate_required_status: 'Enter the vehicle plate number first',
+    extracting_status: 'Reading invoice data...',
+    extract_success_status: 'Data extracted — review then save',
+    extract_fail_status: 'Automatic extraction failed, please fill fields manually',
+    retry_btn: 'Retry',
+    form_card_title: 'Invoice Data',
+    form_card_sub: 'Review the extracted values and edit if needed before saving.',
+    fuel_type_label: 'Fuel Type',
+    fuel_benzin: 'Petrol',
+    fuel_diesel: 'Diesel',
+    invoice_no_label: 'Invoice Number',
+    invoice_no_placeholder: 'e.g. 10245',
+    date_label: 'Date',
+    price_label: 'Price per Liter (incl. tax)',
+    liters_label: 'Liters',
+    before_tax_label: 'Amount Before Tax',
+    tax_label: 'Tax (15%)',
+    total_label: 'Total Amount',
+    audit_btn: '🔍 Audit Data Against Image',
+    auditing_btn: 'Auditing...',
+    save_btn: 'Save Invoice',
+    cancel_btn: 'Cancel',
+    plate_missing_msg: 'Please enter the vehicle plate number',
+    fields_missing_msg: 'Please fill in at least the invoice number, date, and liters',
+    save_success_msg: 'Invoice saved successfully ✓',
+    save_fail_msg: 'Failed to save invoice, try again',
+    admin_lock_title: 'Admin page is protected',
+    admin_lock_sub: 'Enter the admin passcode to continue',
+    admin_report_title: 'Invoices Report',
+    admin_report_sub: 'All invoices logged from the field — data is shared among all users.',
+    search_plate_placeholder: 'Search by plate number',
+    filter_all_types: 'All types',
+    filter_benzin_only: 'Petrol only',
+    filter_diesel_only: 'Diesel only',
+    filter_to: 'to',
+    refresh_btn: 'Refresh',
+    export_csv_btn: 'Export CSV',
+    export_excel_btn: 'Export Excel (with images)',
+    col_plate: 'Plate No.',
+    col_invoice_no: 'Invoice No.',
+    col_date: 'Date',
+    col_type: 'Type',
+    col_price: 'Price/Liter',
+    col_liters: 'Liters',
+    col_before_tax: 'Before Tax',
+    col_tax: 'Tax 15%',
+    col_total: 'Total',
+    col_image_file: 'Image Filename',
+    no_invoices_yet: 'No invoices logged yet',
+    loading: 'Loading...',
+    load_fail: 'Failed to load data',
+    delete_confirm: 'Delete this invoice?',
+    delete_fail: 'Failed to delete invoice',
+    delete_title: 'Delete',
+    total_row_label: 'Total',
+    invoice_word: 'invoices',
+    stat_count: 'Invoice Count',
+    stat_liters: 'Total Liters',
+    stat_amount: 'Total Amount',
+    stat_types: 'Petrol / Diesel',
+    no_data_to_export: 'No data to export',
+    export_failed: 'Failed to export file, try again',
+    sheet_name: 'Invoices',
+    no_image: 'No image',
+    exporting_progress: 'Preparing images ({n}/{total})...',
+    preparing_download: 'Preparing download file...',
+    no_image_status: 'No image',
+    no_image_for_audit: 'Invoice image is not available for comparison.',
+    no_image_title: '⚠️ No Image',
+    audit_fail_title: '⚠️ Audit Failed',
+    audit_fail_body: 'AI could not compare the data, try again.',
+    audit_no_result: '⚠️ No clear audit result returned',
+    audit_ok_title: '✓ Data matches the invoice',
+    audit_issues_title_1: '⚠️ Check ',
+    audit_issues_title_2: ' field(s) before saving',
+    audit_field_invoice_number: 'Invoice Number',
+    audit_field_date: 'Date',
+    audit_field_fuel_type: 'Fuel Type',
+    audit_field_price_per_liter: 'Price per Liter',
+    audit_field_liters: 'Liters',
+    audit_field_amount_before_tax: 'Amount Before Tax',
+    audit_field_tax_amount: 'Tax 15%',
+    audit_field_total_amount: 'Total Amount',
+    ok_note: 'Match'
+  }
+};
+
+function t(key){
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || key;
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+    el.title = t(el.getAttribute('data-i18n-title'));
+  });
+}
+
+function applyLanguage(lang){
+  currentLang = lang;
+  localStorage.setItem('appLang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.title = t('page_title');
+  const toggleBtn = document.getElementById('langToggleBtn');
+  if(toggleBtn) toggleBtn.textContent = t('lang_toggle');
+  applyStaticTranslations();
+  renderTable();
+}
+
+function toggleLanguage(){
+  applyLanguage(currentLang === 'ar' ? 'en' : 'ar');
+}
 
 function switchTab(tab){
   document.getElementById('viewField').style.display = tab==='field' ? 'block':'none';
@@ -440,7 +698,7 @@ function tryUnlockField(){
     document.getElementById('fieldLockErr').textContent = '';
     updateGates();
   }else{
-    document.getElementById('fieldLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
+    document.getElementById('fieldLockErr').textContent = t('wrong_code');
     document.getElementById('fieldPass').value = '';
   }
 }
@@ -453,7 +711,7 @@ function tryUnlockAdmin(){
     updateGates();
     loadInvoices();
   }else{
-    document.getElementById('adminLockErr').textContent = 'رمز غير صحيح، حاول مرة أخرى';
+    document.getElementById('adminLockErr').textContent = t('wrong_code');
     document.getElementById('adminPass').value = '';
   }
 }
@@ -489,7 +747,7 @@ function guardPlateBeforeCapture(e){
   if(!plate){
     e.preventDefault();
     document.getElementById('f_plate').focus();
-    setStatus('<span style="color:#f0a889;">أدخل رقم لوحة السيارة أولاً</span>');
+    setStatus('<span style="color:#f0a889;">' + t('plate_required_status') + '</span>');
   }
 }
 document.getElementById('captureZone').addEventListener('click', guardPlateBeforeCapture);
@@ -536,7 +794,7 @@ async function extractInvoice(){
   if(!currentImage) return;
   const btn = document.getElementById('extractBtn');
   btn.disabled = true;
-  setStatus('<div class="spinner"></div><span>جارٍ قراءة بيانات الفاتورة...</span>');
+  setStatus('<div class="spinner"></div><span>' + t('extracting_status') + '</span>');
 
   const prompt = `أنت مساعد لاستخراج بيانات فواتير الوقود من صورة فاتورة سعودية.
 اقرأ الصورة المرفقة واستخرج القيم التالية بدقة. إذا كانت قيمة غير واضحة احسبها من القيم الأخرى (الضريبة في السعودية 15%، المبلغ الإجمالي = المبلغ قبل الضريبة × 1.15).
@@ -575,10 +833,10 @@ async function extractInvoice(){
     let clean = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
     const parsed = JSON.parse(clean);
     populateForm(parsed);
-    setStatus('<span style="color:#8fdcb8;">تم استخراج البيانات — راجعها ثم احفظ</span>');
+    setStatus('<span style="color:#8fdcb8;">' + t('extract_success_status') + '</span>');
   }catch(err){
     console.error(err);
-    setStatus('<span style="color:#f0a889;">تعذّر الاستخراج التلقائي، الرجاء تعبئة الحقول يدوياً</span> <button class="btn btn-ghost btn-sm" onclick="extractInvoice()" style="margin-right:6px;">إعادة المحاولة</button>');
+    setStatus('<span style="color:#f0a889;">' + t('extract_fail_status') + '</span> <button class="btn btn-ghost btn-sm" onclick="extractInvoice()" style="margin-right:6px;">' + t('retry_btn') + '</button>');
     populateForm({});
   }finally{
     btn.disabled = false;
@@ -587,14 +845,14 @@ async function extractInvoice(){
 
 async function auditInvoice(){
   if(!currentImage){
-    document.getElementById('auditResult').innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لا توجد صورة</div>صورة الفاتورة غير متاحة للمقارنة معها.</div>';
+    document.getElementById('auditResult').innerHTML = '<div class="audit-panel warn"><div class="audit-title">' + t('no_image_title') + '</div>' + t('no_image_for_audit') + '</div>';
     return;
   }
   const btn = document.getElementById('auditBtn');
   const resultBox = document.getElementById('auditResult');
   btn.disabled = true;
   const originalLabel = btn.textContent;
-  btn.textContent = 'جارٍ التدقيق...';
+  btn.textContent = t('auditing_btn');
   resultBox.innerHTML = '';
 
   const formValues = {
@@ -660,38 +918,31 @@ async function auditInvoice(){
     renderAudit(parsed.fields || []);
   }catch(err){
     console.error(err);
-    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ تعذّر التدقيق</div>لم يتمكن الذكاء الاصطناعي من مقارنة البيانات، حاول مرة أخرى. <button class="btn btn-ghost btn-sm" onclick="auditInvoice()" style="margin-top:8px;">إعادة المحاولة</button></div>';
+    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">' + t('audit_fail_title') + '</div>' + t('audit_fail_body') + ' <button class="btn btn-ghost btn-sm" onclick="auditInvoice()" style="margin-top:8px;">' + t('retry_btn') + '</button></div>';
   }finally{
     btn.disabled = false;
     btn.textContent = originalLabel;
   }
 }
 
-const AUDIT_LABELS = {
-  invoice_number: 'رقم الفاتورة',
-  date: 'التاريخ',
-  fuel_type: 'نوع الوقود',
-  price_per_liter: 'سعر اللتر',
-  liters: 'عدد اللترات',
-  amount_before_tax: 'المبلغ قبل الضريبة',
-  tax_amount: 'الضريبة 15%',
-  total_amount: 'المبلغ الإجمالي'
-};
+function auditLabel(key){
+  return t('audit_field_' + key);
+}
 
 function renderAudit(fields){
   const resultBox = document.getElementById('auditResult');
   if(!fields.length){
-    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">⚠️ لم يتم إرجاع نتيجة تدقيق واضحة</div></div>';
+    resultBox.innerHTML = '<div class="audit-panel warn"><div class="audit-title">' + t('audit_no_result') + '</div></div>';
     return;
   }
   const issues = fields.filter(f => !f.ok);
   const panelClass = issues.length ? 'warn' : 'ok';
   const title = issues.length
-    ? `⚠️ تحقق من ${issues.length} حقل قبل الحفظ`
-    : '✓ البيانات مطابقة للفاتورة';
+    ? t('audit_issues_title_1') + issues.length + t('audit_issues_title_2')
+    : t('audit_ok_title');
 
   const items = fields.map(f => {
-    const label = AUDIT_LABELS[f.key] || f.key;
+    const label = auditLabel(f.key);
     const tickClass = f.ok ? 'good' : 'bad';
     const tick = f.ok ? '✓' : '✕';
     const note = f.ok ? '' : `<span class="fnote"> — ${escapeHtml(f.note || '')}</span>`;
@@ -762,14 +1013,16 @@ async function saveInvoice(){
     amount_before_tax: parseFloat(document.getElementById('f_before_tax').value) || 0,
     tax_amount: parseFloat(document.getElementById('f_tax').value) || 0,
     total_amount: parseFloat(document.getElementById('f_total').value) || 0,
+    image_base64: currentImage ? currentImage.base64 : null,
+    image_mime: currentImage ? currentImage.mediaType : null,
     saved_at: new Date().toISOString()
   };
   if(!record.plate_number){
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء إدخال رقم لوحة السيارة</div>';
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">' + t('plate_missing_msg') + '</div>';
     return;
   }
   if(!record.invoice_number || !record.date || !record.liters){
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل</div>';
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">' + t('fields_missing_msg') + '</div>';
     return;
   }
   try{
@@ -780,7 +1033,7 @@ async function saveInvoice(){
     });
     const result = await resp.json();
     if(!resp.ok) throw new Error(result.error || 'فشل الحفظ');
-    document.getElementById('formMsg').innerHTML = '<div class="msg ok">تم حفظ الفاتورة بنجاح ✓</div>';
+    document.getElementById('formMsg').innerHTML = '<div class="msg ok">' + t('save_success_msg') + '</div>';
     setTimeout(()=>{
       document.getElementById('formCard').style.display = 'none';
       resetCapture();
@@ -789,13 +1042,13 @@ async function saveInvoice(){
     }, 1200);
   }catch(err){
     console.error(err);
-    document.getElementById('formMsg').innerHTML = '<div class="msg err">تعذّر حفظ الفاتورة، حاول مرة أخرى</div>';
+    document.getElementById('formMsg').innerHTML = '<div class="msg err">' + t('save_fail_msg') + '</div>';
   }
 }
 
 async function loadInvoices(){
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '<tr><td colspan="10" class="empty">جارٍ التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10" class="empty">' + t('loading') + '</td></tr>';
   try{
     const resp = await fetch(RENDER_API_URL + '/invoices');
     if(!resp.ok) throw new Error('فشل الاتصال بالسيرفر');
@@ -811,13 +1064,15 @@ async function loadInvoices(){
       amount_before_tax: r.amount_before_tax,
       tax_amount: r.tax_amount,
       total_amount: r.total_amount,
+      image_filename: r.image_filename,
+      has_image: r.has_image,
       saved_at: r.saved_at
     }));
     allInvoices = records;
     renderTable();
   }catch(err){
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">تعذّر تحميل البيانات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">' + t('load_fail') + '</td></tr>';
   }
 }
 
@@ -850,20 +1105,20 @@ function renderTable(){
         <td>${escapeHtml(r.plate_number)}</td>
         <td>${escapeHtml(r.invoice_number)}</td>
         <td>${escapeHtml(r.date)}</td>
-        <td><span class="pill ${r.fuel_type==='ديزل'?'diesel':'benzin'}">${escapeHtml(r.fuel_type)}</span></td>
+        <td><span class="pill ${r.fuel_type==='ديزل'?'diesel':'benzin'}">${escapeHtml(fuelLabel(r.fuel_type))}</span></td>
         <td>${fmt(r.price_per_liter)}</td>
         <td>${fmt(r.liters)}</td>
         <td>${fmt(r.amount_before_tax)}</td>
         <td>${fmt(r.tax_amount)}</td>
         <td>${fmt(r.total_amount)}</td>
-        <td><button class="row-del" title="حذف" onclick="deleteInvoice('${r._key}')">✕</button></td>
+        <td><button class="row-del" title="${t('delete_title')}" onclick="deleteInvoice('${r._key}')">✕</button></td>
       </tr>
     `).join('');
 
     const sum = (key) => rows.reduce((s,r)=> s + (parseFloat(r[key])||0), 0);
     tfoot.innerHTML = `
       <tr>
-        <td colspan="5">الإجمالي (${rows.length} فاتورة)</td>
+        <td colspan="5">${t('total_row_label')} (${rows.length} ${t('invoice_word')})</td>
         <td>${fmt(sum('liters'))}</td>
         <td>${fmt(sum('amount_before_tax'))}</td>
         <td>${fmt(sum('tax_amount'))}</td>
@@ -876,15 +1131,15 @@ function renderTable(){
   const benzinRows = rows.filter(r=>r.fuel_type==='بنزين');
   const dieselRows = rows.filter(r=>r.fuel_type==='ديزل');
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat"><div class="n">${rows.length}</div><div class="l">عدد الفواتير</div></div>
-    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.liters)||0),0))}</div><div class="l">إجمالي اللترات</div></div>
-    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.total_amount)||0),0))}</div><div class="l">إجمالي المبلغ</div></div>
-    <div class="stat"><div class="n">${benzinRows.length} / ${dieselRows.length}</div><div class="l">بنزين / ديزل</div></div>
+    <div class="stat"><div class="n">${rows.length}</div><div class="l">${t('stat_count')}</div></div>
+    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.liters)||0),0))}</div><div class="l">${t('stat_liters')}</div></div>
+    <div class="stat"><div class="n">${fmt(rows.reduce((s,r)=>s+(parseFloat(r.total_amount)||0),0))}</div><div class="l">${t('stat_amount')}</div></div>
+    <div class="stat"><div class="n">${benzinRows.length} / ${dieselRows.length}</div><div class="l">${t('stat_types')}</div></div>
   `;
 }
 
 async function deleteInvoice(key){
-  if(!confirm('هل تريد حذف هذه الفاتورة؟')) return;
+  if(!confirm(t('delete_confirm'))) return;
   try{
     const resp = await fetch(RENDER_API_URL + '/invoices/' + key, { method: 'DELETE' });
     if(!resp.ok) throw new Error('فشل الحذف');
@@ -892,17 +1147,17 @@ async function deleteInvoice(key){
     renderTable();
   }catch(err){
     console.error(err);
-    alert('تعذّر حذف الفاتورة');
+    alert(t('delete_fail'));
   }
 }
 
 function exportCsv(){
   const rows = allInvoices;
-  if(rows.length === 0){ alert('لا توجد بيانات للتصدير'); return; }
-  const headers = ['رقم اللوحة','رقم الفاتورة','التاريخ','النوع','سعر اللتر','اللترات','قبل الضريبة','الضريبة 15%','الإجمالي'];
+  if(rows.length === 0){ alert(t('no_data_to_export')); return; }
+  const headers = [t('col_plate'),t('col_invoice_no'),t('col_date'),t('col_type'),t('col_price'),t('col_liters'),t('col_before_tax'),t('col_tax'),t('col_total')];
   const lines = [headers.join(',')];
   rows.forEach(r=>{
-    lines.push([r.plate_number, r.invoice_number, r.date, r.fuel_type, r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
+    lines.push([r.plate_number, r.invoice_number, r.date, fuelLabel(r.fuel_type), r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount, r.total_amount].map(v=>`"${v ?? ''}"`).join(','));
   });
   const blob = new Blob(["\uFEFF" + lines.join('\n')], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -910,6 +1165,74 @@ function exportCsv(){
   a.href = url; a.download = 'تقرير_فواتير_الوقود.csv';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+async function exportExcel(){
+  const rows = allInvoices;
+  if(rows.length === 0){ alert(t('no_data_to_export')); return; }
+
+  const btn = document.getElementById('exportExcelBtn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+
+  try{
+    // 1) بناء ورقة الإكسل — عمود إضافي فيه اسم ملف صورة الفاتورة
+    const headers = [
+      t('col_plate'), t('col_invoice_no'), t('col_date'), t('col_type'),
+      t('col_price'), t('col_liters'), t('col_before_tax'), t('col_tax'),
+      t('col_total'), t('col_image_file')
+    ];
+    const data = [headers];
+    rows.forEach(r=>{
+      data.push([
+        r.plate_number, r.invoice_number, r.date, fuelLabel(r.fuel_type),
+        r.price_per_liter, r.liters, r.amount_before_tax, r.tax_amount,
+        r.total_amount, r.has_image ? r.image_filename : t('no_image')
+      ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t('sheet_name'));
+    const excelArrayBuffer = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+
+    // 2) تجميع ملف الإكسل + مجلد الصور داخل ملف مضغوط واحد
+    const zip = new JSZip();
+    zip.file('fuel_invoices_report.xlsx', excelArrayBuffer);
+    const imgFolder = zip.folder('images');
+
+    const withImages = rows.filter(r => r.has_image && r.image_filename);
+    for(let i=0; i<withImages.length; i++){
+      const r = withImages[i];
+      btn.textContent = t('exporting_progress').replace('{n}', i+1).replace('{total}', withImages.length);
+      try{
+        const imgResp = await fetch(RENDER_API_URL + '/invoices/' + r._key + '/image');
+        if(imgResp.ok){
+          const blob = await imgResp.blob();
+          imgFolder.file(r.image_filename, blob);
+        }
+      }catch(e){ console.warn('تعذّر جلب صورة الفاتورة', r._key, e); }
+    }
+
+    btn.textContent = t('preparing_download');
+    const zipBlob = await zip.generateAsync({type:'blob'});
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'تقرير_فواتير_الوقود.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+  }catch(err){
+    console.error(err);
+    alert(t('export_failed'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+function fuelLabel(type){
+  if(type === 'ديزل') return t('fuel_diesel');
+  if(type === 'بنزين') return t('fuel_benzin');
+  return type || '';
 }
 
 function fmt(n){
@@ -924,6 +1247,7 @@ function escapeHtml(s){
 setFuel('بنزين');
 onPlateInput();
 updateGates();
+applyLanguage(currentLang);
 </script>
 </body>
 </html>

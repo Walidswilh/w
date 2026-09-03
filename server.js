@@ -39,7 +39,7 @@ const pool = new Pool({
     : false,
 });
 
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "15mb" }));
 app.use(
   cors({
     origin: ALLOWED_ORIGIN === "*" ? true : ALLOWED_ORIGIN,
@@ -61,9 +61,16 @@ async function ensureTable() {
       amount_before_tax NUMERIC,
       tax_amount NUMERIC,
       total_amount NUMERIC,
+      image_base64 TEXT,
+      image_mime TEXT,
+      image_filename TEXT,
       saved_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+  // يضيف الأعمدة الجديدة إذا كانت قاعدة البيانات من نسخة سابقة قبل دعم الصور
+  await pool.query(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS image_base64 TEXT;`);
+  await pool.query(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS image_mime TEXT;`);
+  await pool.query(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS image_filename TEXT;`);
 }
 
 // نقطة فحص صحة السيرفر
@@ -71,16 +78,41 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", service: "fuel-invoice-backend" });
 });
 
-// جلب كل الفواتير
+// جلب كل الفواتير (بدون بيانات الصورة الثقيلة — فقط اسم الملف وهل توجد صورة)
 app.get("/invoices", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM invoices ORDER BY date DESC NULLS LAST, saved_at DESC"
+      `SELECT id, plate_number, invoice_number, date, fuel_type, price_per_liter,
+              liters, amount_before_tax, tax_amount, total_amount, image_filename,
+              (image_base64 IS NOT NULL) AS has_image, saved_at
+       FROM invoices
+       ORDER BY date DESC NULLS LAST, saved_at DESC`
     );
     res.json({ invoices: result.rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "تعذّر جلب الفواتير: " + err.message });
+  }
+});
+
+// جلب صورة فاتورة واحدة (بايتات الصورة الفعلية)
+app.get("/invoices/:id/image", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "SELECT image_base64, image_mime FROM invoices WHERE id = $1",
+      [id]
+    );
+    const row = result.rows[0];
+    if (!row || !row.image_base64) {
+      return res.status(404).json({ error: "لا توجد صورة لهذه الفاتورة" });
+    }
+    const buffer = Buffer.from(row.image_base64, "base64");
+    res.set("Content-Type", row.image_mime || "image/jpeg");
+    res.send(buffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "تعذّر جلب الصورة: " + err.message });
   }
 });
 
@@ -97,17 +129,19 @@ app.post("/invoices", async (req, res) => {
       amount_before_tax,
       tax_amount,
       total_amount,
+      image_base64,
+      image_mime,
     } = req.body;
 
     if (!plate_number) {
       return res.status(400).json({ error: "رقم اللوحة مطلوب" });
     }
 
-    const result = await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO invoices
-        (plate_number, invoice_number, date, fuel_type, price_per_liter, liters, amount_before_tax, tax_amount, total_amount)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       RETURNING *`,
+        (plate_number, invoice_number, date, fuel_type, price_per_liter, liters, amount_before_tax, tax_amount, total_amount, image_base64, image_mime)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       RETURNING id`,
       [
         plate_number,
         invoice_number || null,
@@ -118,10 +152,32 @@ app.post("/invoices", async (req, res) => {
         amount_before_tax || 0,
         tax_amount || 0,
         total_amount || 0,
+        image_base64 || null,
+        image_mime || null,
       ]
     );
 
-    res.json({ invoice: result.rows[0] });
+    const newId = insertResult.rows[0].id;
+    let imageFilename = null;
+    if (image_base64) {
+      const ext = (image_mime || "image/jpeg").includes("png") ? "png" : "jpg";
+      const safePlate = String(plate_number).replace(/[^0-9a-zA-Z_-]/g, "");
+      imageFilename = `invoice_${newId}_${safePlate}.${ext}`;
+      await pool.query("UPDATE invoices SET image_filename = $1 WHERE id = $2", [
+        imageFilename,
+        newId,
+      ]);
+    }
+
+    const finalResult = await pool.query(
+      `SELECT id, plate_number, invoice_number, date, fuel_type, price_per_liter,
+              liters, amount_before_tax, tax_amount, total_amount, image_filename,
+              (image_base64 IS NOT NULL) AS has_image, saved_at
+       FROM invoices WHERE id = $1`,
+      [newId]
+    );
+
+    res.json({ invoice: finalResult.rows[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "تعذّر حفظ الفاتورة: " + err.message });
