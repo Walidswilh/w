@@ -405,6 +405,12 @@ function aiEndpoint(){
 }
 // --------------------------------------------------------------------------
 
+// ---- رابط سيرفر تخزين الفواتير على Render.com ----
+// بعد نشر السيرفر (server.js) على Render، ضع رابطه هنا. مثال:
+// const RENDER_API_URL = 'https://fuel-invoice-backend.onrender.com';
+const RENDER_API_URL = 'https://YOUR-RENDER-SERVICE.onrender.com';
+// --------------------------------------------------------------------------
+
 let currentImage = null; // {base64, mediaType}
 let currentFuel = null;
 let allInvoices = [];
@@ -766,10 +772,14 @@ async function saveInvoice(){
     document.getElementById('formMsg').innerHTML = '<div class="msg err">الرجاء تعبئة رقم الفاتورة والتاريخ وعدد اللترات على الأقل</div>';
     return;
   }
-  const key = 'invoice:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
   try{
-    const result = await window.storage.set(key, JSON.stringify(record), true);
-    if(!result) throw new Error('فشل الحفظ');
+    const resp = await fetch(RENDER_API_URL + '/invoices', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(record)
+    });
+    const result = await resp.json();
+    if(!resp.ok) throw new Error(result.error || 'فشل الحفظ');
     document.getElementById('formMsg').innerHTML = '<div class="msg ok">تم حفظ الفاتورة بنجاح ✓</div>';
     setTimeout(()=>{
       document.getElementById('formCard').style.display = 'none';
@@ -787,20 +797,22 @@ async function loadInvoices(){
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '<tr><td colspan="10" class="empty">جارٍ التحميل...</td></tr>';
   try{
-    const listResult = await window.storage.list('invoice:', true);
-    const keys = (listResult && listResult.keys) || [];
-    const records = [];
-    for(const k of keys){
-      try{
-        const r = await window.storage.get(k, true);
-        if(r && r.value){
-          const parsed = JSON.parse(r.value);
-          parsed._key = k;
-          records.push(parsed);
-        }
-      }catch(e){ /* skip unreadable key */ }
-    }
-    records.sort((a,b) => (b.date||'').localeCompare(a.date||'') || (b.saved_at||'').localeCompare(a.saved_at||''));
+    const resp = await fetch(RENDER_API_URL + '/invoices');
+    if(!resp.ok) throw new Error('فشل الاتصال بالسيرفر');
+    const data = await resp.json();
+    const records = (data.invoices || []).map(r => ({
+      _key: r.id,
+      plate_number: r.plate_number,
+      invoice_number: r.invoice_number,
+      date: r.date,
+      fuel_type: r.fuel_type,
+      price_per_liter: r.price_per_liter,
+      liters: r.liters,
+      amount_before_tax: r.amount_before_tax,
+      tax_amount: r.tax_amount,
+      total_amount: r.total_amount,
+      saved_at: r.saved_at
+    }));
     allInvoices = records;
     renderTable();
   }catch(err){
@@ -874,7 +886,8 @@ function renderTable(){
 async function deleteInvoice(key){
   if(!confirm('هل تريد حذف هذه الفاتورة؟')) return;
   try{
-    await window.storage.delete(key, true);
+    const resp = await fetch(RENDER_API_URL + '/invoices/' + key, { method: 'DELETE' });
+    if(!resp.ok) throw new Error('فشل الحذف');
     allInvoices = allInvoices.filter(r => r._key !== key);
     renderTable();
   }catch(err){

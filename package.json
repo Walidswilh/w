@@ -1,0 +1,14 @@
+{
+  "name": "fuel-invoice-backend",
+  "version": "1.0.0",
+  "description": "سيرفر بسيط لتخزين فواتير الوقود على Render.com مع قاعدة بيانات PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "cors": "^2.8.5"
+  }
+}
